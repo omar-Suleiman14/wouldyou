@@ -250,8 +250,8 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
     const btnW = btnRect.width || 170;
     const btnH = btnRect.height || 60;
 
-    // Exact local translation bounds so the button stays well inside all 4 edges of cardRect (`64px` buffer on desktop, `36px` on mobile)
-    const pad = typeof window !== "undefined" && window.innerWidth < 640 ? 36 : 64;
+    // Generous inset translation bounds (`96px` buffer on desktop, `56px` on mobile) to completely absorb the bouncy spring overshoot (`1.36`) inside card container
+    const pad = typeof window !== "undefined" && window.innerWidth < 640 ? 56 : 96;
     const minTx = cardRect.left + pad - restLeft;
     const maxTx = cardRect.right - pad - (restLeft + btnW);
     const minTy = cardRect.top + pad - restTop;
@@ -285,8 +285,8 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
         }
       }
       if (!found) {
-        tx = cx < centerTx ? Math.min(maxTx, cx + 220) : Math.max(minTx, cx - 220);
-        ty = cy < centerTy ? Math.min(maxTy, cy + 160) : Math.max(minTy, cy - 160);
+        tx = cx < centerTx ? Math.min(maxTx, cx + 200) : Math.max(minTx, cx - 200);
+        ty = cy < centerTy ? Math.min(maxTy, cy + 150) : Math.max(minTy, cy - 150);
       }
     }
 
@@ -296,22 +296,22 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    // Perfectly tuned, lively iOS spring bounce (`0.28s cubic-bezier(0.22, 1.15, 0.36, 1)`) with controlled 15% overshoot
+    // Ultra bouncy rubber-band spring transition (`0.32s cubic-bezier(0.26, 1.36, 0.52, 1)`) with lively 36% overshoot
     if (noBtnRef.current) {
-      noBtnRef.current.style.transition = "transform 0.28s cubic-bezier(0.22, 1.15, 0.36, 1)";
+      noBtnRef.current.style.transition = "transform 0.32s cubic-bezier(0.26, 1.36, 0.52, 1)";
       noBtnRef.current.style.transform = `translate3d(${tx}px,${ty}px,0)`;
     }
     currentPosRef.current = { x: tx, y: ty };
     setEscapeCount((p) => p + 1);
 
-    // Unlock proximity check after 240ms so successive bounces trigger smoothly right when it settles
+    // Unlock proximity check after 260ms right as the bounce settles
     setTimeout(() => {
       isTauntingRef.current = false;
-    }, 240);
+    }, 260);
 
     setTimeout(() => {
       setNoTauntIdx((p) => p + 1);
-    }, 280);
+    }, 320);
   }, []);
 
   // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors with balanced 115px escape radius
