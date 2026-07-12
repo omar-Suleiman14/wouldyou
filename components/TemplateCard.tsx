@@ -53,39 +53,39 @@ export function TemplateCard({
       style={{
         borderColor: isSelected ? colors.primary : "rgba(0, 0, 0, 0.06)",
       }}
-      className={`group relative rounded-3xl p-6 sm:p-7 border-2 cursor-pointer overflow-hidden transition-all duration-300 apple-glass ${
+      className={`group relative rounded-2xl p-4 sm:p-5 border cursor-pointer overflow-hidden transition-all duration-200 apple-glass ${
         isSelected
-          ? "shadow-2xl ring-4 ring-pink-500/15"
-          : "hover:shadow-2xl hover:border-black/15"
+          ? "shadow-lg ring-2 ring-pink-500/20"
+          : "hover:shadow-md hover:border-black/15"
       }`}
     >
       {/* Subtle top color accent bar */}
       <div
-        className="absolute top-0 left-0 right-0 h-1.5 opacity-90 transition-opacity"
+        className="absolute top-0 left-0 right-0 h-1 opacity-90 transition-opacity"
         style={{ backgroundColor: colors.primary }}
       />
 
       {/* Top Bar: Personality Pill & Color Palette Swatches */}
-      <div className="flex items-center justify-between gap-3 mb-5 relative z-10 pt-1">
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-black/[0.04] text-zinc-800 border border-black/5">
+      <div className="flex items-center justify-between gap-2.5 mb-3.5 relative z-10 pt-0.5">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-black/[0.04] text-zinc-800 border border-black/5">
           {getPersonalityIcon()}
           <span>{title}</span>
         </div>
 
         {/* Color Palette Dots */}
-        <div className="flex items-center -space-x-1 p-1 rounded-full bg-black/[0.03] border border-black/5">
+        <div className="flex items-center -space-x-1 p-0.5 rounded-full bg-black/[0.03] border border-black/5">
           <div
-            className="w-3.5 h-3.5 rounded-full shadow-sm"
+            className="w-3 h-3 rounded-full shadow-2xs"
             style={{ backgroundColor: colors.primary }}
             title="Primary"
           />
           <div
-            className="w-3.5 h-3.5 rounded-full shadow-sm"
+            className="w-3 h-3 rounded-full shadow-2xs"
             style={{ backgroundColor: colors.secondary }}
             title="Secondary"
           />
           <div
-            className="w-3.5 h-3.5 rounded-full shadow-sm"
+            className="w-3 h-3 rounded-full shadow-2xs"
             style={{ backgroundColor: colors.accent }}
             title="Accent"
           />
@@ -93,30 +93,30 @@ export function TemplateCard({
       </div>
 
       {/* Main Copy Preview */}
-      <div className="relative z-10 mb-6">
-        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-900 line-clamp-2 mb-2 leading-snug">
+      <div className="relative z-10 mb-4">
+        <h3 className="text-base sm:text-lg font-black tracking-tight text-zinc-900 line-clamp-2 mb-1 leading-snug">
           {content.headline}
         </h3>
-        <p className="text-xs sm:text-sm text-zinc-600 line-clamp-2 font-normal leading-relaxed">
+        <p className="text-xs text-zinc-600 line-clamp-2 font-normal leading-relaxed">
           {content.subtext}
         </p>
       </div>
 
       {/* Interactive Button Preview Mini-Row */}
-      <div className="flex items-center gap-2 mb-6 relative z-10">
+      <div className="flex items-center gap-2 mb-4 relative z-10">
         <div
-          className="flex-1 py-2.5 px-3 rounded-xl text-center text-xs font-extrabold text-white shadow-md truncate"
+          className="flex-1 py-2 px-2.5 rounded-xl text-center text-[11px] font-extrabold text-white shadow-sm truncate"
           style={{ backgroundColor: colors.primary }}
         >
           {content.yesBtnText}
         </div>
-        <div className="flex-1 py-2.5 px-3 rounded-xl text-center text-xs font-bold text-zinc-700 bg-black/[0.05] border border-black/5 truncate">
+        <div className="flex-1 py-2 px-2.5 rounded-xl text-center text-[11px] font-bold text-zinc-700 bg-black/[0.05] border border-black/5 truncate">
           {content.noBtnText}
         </div>
       </div>
 
       {/* Footer / Stats and Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-black/[0.06] text-xs text-zinc-500 relative z-10">
+      <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] text-xs text-zinc-500 relative z-10">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1 font-medium">
             <Eye className="w-3.5 h-3.5 text-zinc-400" />

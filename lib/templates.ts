@@ -34,7 +34,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
   {
     slug: "/valentine",
     templateId: "valentine",
-    title: "Valentine Rose",
+    title: "Valentine's Day",
     recipientName: "",
     senderName: "",
     colors: {
@@ -62,7 +62,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
   {
     slug: "/date-night",
     templateId: "date-night",
-    title: "Midnight Starlight",
+    title: "Date Night",
     recipientName: "",
     senderName: "",
     colors: {
@@ -90,7 +90,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
   {
     slug: "/anniversary",
     templateId: "anniversary",
-    title: "Kyoto Sunset Gold",
+    title: "Anniversary",
     recipientName: "",
     senderName: "",
     colors: {
@@ -118,7 +118,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
   {
     slug: "/situationship",
     templateId: "situationship",
-    title: "Cyber Mint Jade",
+    title: "Make It Official",
     recipientName: "",
     senderName: "",
     colors: {
@@ -146,7 +146,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
   {
     slug: "/unhinged-confession",
     templateId: "unhinged",
-    title: "Tokyo Cyber Red",
+    title: "Unhinged Confession",
     recipientName: "",
     senderName: "",
     colors: {
@@ -170,6 +170,34 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
     isCustom: false,
     views: 342,
     yesCount: 310,
+  },
+  {
+    slug: "/custom",
+    templateId: "custom",
+    title: "Create Your Own",
+    recipientName: "",
+    senderName: "",
+    colors: {
+      primary: "#8B5CF6", // Sleek modern violet
+      secondary: "#EC4899",
+      accent: "#3B82F6",
+      background: "#F8F7FF", // Clean modern bright pearl
+      cardBg: "#FFFFFF",
+      text: "#18181B",
+    },
+    content: {
+      headline: "Will you come with me to...",
+      subtext: "Add your custom invitation details, inside jokes, and exact plans right here so they can't say no!",
+      yesBtnText: "Count me in! 🚀",
+      noBtnText: "No way 🙈",
+      postYesHeadline: "It's Happening! 🎉✨",
+      postYesSubtext: "Can't wait! Get ready for an unforgettable time together. Check your messages soon!",
+      handwrittenMessage: "Can't wait to see you! 💕",
+    },
+    visualPersonality: "stars",
+    isCustom: true,
+    views: 420,
+    yesCount: 389,
   },
 ];
 

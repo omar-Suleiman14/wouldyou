@@ -17,7 +17,7 @@ import { Navbar } from "../components/Navbar";
 const TESTIMONIALS = [
   {
     author: "Alex & 3862",
-    role: "Valentine's Ask · Tokyo Rose theme",
+    role: "Valentine's Ask · Valentine's Day theme",
     quote:
       "She laughed for 5 minutes straight trying to click 'No' before finally clicking 'Yes'. Best ask ever made.",
     badge: "Valentine's Day",
@@ -25,7 +25,7 @@ const TESTIMONIALS = [
   },
   {
     author: "Liam & Jessica",
-    role: "Date Night Ask · Midnight Starlight",
+    role: "Date Night Ask · Date Night theme",
     quote:
       "The analytics drawer in the footer is pure genius. I knew exact date and time immediately without texting.",
     badge: "Date Night",
@@ -33,7 +33,7 @@ const TESTIMONIALS = [
   },
   {
     author: "Dev & Maya",
-    role: "Anniversary · Kyoto Sunset Gold",
+    role: "Anniversary · Anniversary theme",
     quote:
       "Apple-level typography and buttery smooth 240fps animations. Felt like sending a high-end interactive app.",
     badge: "Anniversary",
@@ -265,8 +265,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Simulated footer drawer pill */}
-            <div className="mt-10 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/95 border border-black/[0.08] backdrop-blur-md text-xs font-bold text-zinc-700 shadow-md">
+            {/* Simulated footer drawer pill (Desktop only) */}
+            <div className="mt-10 hidden sm:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/95 border border-black/[0.08] backdrop-blur-md text-xs font-bold text-zinc-700 shadow-md">
               <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
               <span>History &amp; Stats Drawer (14 views · 12 yes)</span>
             </div>
@@ -287,19 +287,20 @@ export default function LandingPage() {
           {TESTIMONIALS.map((t, idx) => (
             <div
               key={idx}
+              suppressHydrationWarning
               className="rounded-[2.2rem] p-7 bg-white/90 backdrop-blur-2xl border border-black/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:shadow-[0_32px_76px_rgba(0,0,0,0.11)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
             >
-              <div>
-                <div className={`inline-block px-3 py-1 rounded-full text-xs font-extrabold border bg-gradient-to-r mb-5 shadow-sm ${t.color}`}>
+              <div suppressHydrationWarning>
+                <div suppressHydrationWarning className={`inline-block px-3 py-1 rounded-full text-xs font-extrabold border bg-gradient-to-r mb-5 shadow-sm ${t.color}`}>
                   {t.badge}
                 </div>
-                <p className="text-sm sm:text-base text-zinc-700 font-normal leading-relaxed mb-8 italic">
+                <p suppressHydrationWarning className="text-sm sm:text-base text-zinc-700 font-normal leading-relaxed mb-8 italic">
                   &ldquo;{t.quote}&rdquo;
                 </p>
               </div>
-              <div className="pt-4 border-t border-black/[0.05]">
-                <div className="font-extrabold text-zinc-950 text-sm sm:text-base">{t.author}</div>
-                <div className="text-xs font-medium text-zinc-500 mt-0.5">{t.role}</div>
+              <div suppressHydrationWarning className="pt-4 border-t border-black/[0.05]">
+                <div suppressHydrationWarning className="font-extrabold text-zinc-950 text-sm sm:text-base">{t.author}</div>
+                <div suppressHydrationWarning className="text-xs font-medium text-zinc-500 mt-0.5">{t.role}</div>
               </div>
             </div>
           ))}
@@ -461,7 +462,7 @@ export default function LandingPage() {
               href="/valentine"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-800 font-bold text-base border border-black/[0.08] transition-all flex items-center justify-center gap-2 shadow-md"
             >
-              <span>See Valentine Rose Theme 🌹</span>
+              <span>See Valentine&apos;s Day Theme 🌹</span>
             </Link>
           </div>
         </div>

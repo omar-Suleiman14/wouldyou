@@ -144,8 +144,8 @@ function StatsDrawer({ slug }: { slug: string }) {
   );
 
   return (
-    <>
-      {/* Trigger pill */}
+    <div className="hidden sm:block">
+      {/* Trigger pill (Desktop only) */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -170,31 +170,13 @@ function StatsDrawer({ slug }: { slug: string }) {
               className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
             />
 
-            {/* Mobile Bottom Shadcn Drawer */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              className="fixed bottom-0 left-0 right-0 z-50 sm:hidden max-h-[88vh] overflow-y-auto rounded-t-3xl p-6 border-t border-x flex flex-col justify-between"
-              style={{
-                background: "rgba(255,255,255,0.98)",
-                backdropFilter: "blur(24px)",
-                borderColor: "rgba(0,0,0,0.08)",
-                boxShadow: "0 -20px 60px rgba(0,0,0,0.12)",
-              }}
-            >
-              <div className="w-10 h-1 rounded-full bg-zinc-200 mx-auto mb-5 shrink-0" />
-              {drawerContent}
-            </motion.div>
-
             {/* Desktop Side Sheet */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              className="fixed top-0 right-0 bottom-0 z-50 hidden sm:flex w-[420px] h-screen overflow-y-auto p-8 border-l flex-col justify-between"
+              className="fixed top-0 right-0 bottom-0 z-50 flex w-[420px] h-screen overflow-y-auto p-8 border-l flex-col justify-between"
               style={{
                 background: "rgba(255,255,255,0.98)",
                 backdropFilter: "blur(28px)",
@@ -207,7 +189,7 @@ function StatsDrawer({ slug }: { slug: string }) {
           </>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
 
@@ -616,8 +598,12 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
         </motion.div>
       </div>
 
-      {/* ── Hidden stats drawer in footer ── */}
-      {!isPreview && slug && slug.startsWith("/") && <StatsDrawer slug={slug} />}
+      {/* ── Hidden stats drawer in footer (Desktop only) ── */}
+      {!isPreview && slug && slug.startsWith("/") && (
+        <div className="hidden sm:block">
+          <StatsDrawer slug={slug} />
+        </div>
+      )}
     </div>
   );
 }

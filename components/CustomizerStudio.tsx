@@ -338,35 +338,48 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                       <p className="text-xs text-zinc-500 font-medium">Pick a prebuilt theme to get started. You can customize every word and color next.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                       {PREBUILT_TEMPLATES.map((tmpl) => {
                         const isSelected = base.templateId === tmpl.templateId;
                         return (
                           <div
                             key={tmpl.templateId}
                             onClick={() => selectTemplate(tmpl)}
-                            className={`p-6 rounded-3xl border-2 transition-all cursor-pointer text-left flex flex-col justify-between min-h-[160px] relative overflow-hidden ${isSelected
-                              ? "border-pink-500 bg-pink-50/50 shadow-lg ring-4 ring-pink-500/10"
-                              : "border-zinc-200 hover:border-zinc-300 bg-white shadow-sm"
-                              }`}
+                            className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer text-left flex flex-col justify-between min-h-[115px] relative overflow-hidden group ${
+                              isSelected
+                                ? "border-pink-500 bg-pink-50/60 shadow-md ring-2 ring-pink-500/20"
+                                : "border-zinc-200/90 hover:border-zinc-300 bg-white hover:bg-zinc-50/50 shadow-2xs"
+                            }`}
                           >
                             <div>
-                              <div className="flex items-center justify-between mb-3">
-                                <span className="text-sm font-black text-zinc-900">{tmpl.title}</span>
-                                {isSelected && (
-                                  <span className="w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs font-bold shadow-md">
-                                    <Check className="w-3.5 h-3.5" />
+                              <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <span className="text-sm font-extrabold text-zinc-900 group-hover:text-pink-600 transition-colors leading-tight">
+                                  {tmpl.title}
+                                </span>
+                                {isSelected ? (
+                                  <span className="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs font-bold shadow-xs shrink-0 mt-0.5">
+                                    <Check className="w-3 h-3 stroke-[3]" />
+                                  </span>
+                                ) : (
+                                  <span className="w-5 h-5 rounded-full border border-zinc-200 group-hover:border-zinc-300 flex items-center justify-center shrink-0 mt-0.5 transition-colors">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-zinc-300 transition-colors" />
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-zinc-500 font-medium line-clamp-2">{tmpl.content.headline}</p>
+                              <p className="text-xs text-zinc-500 font-medium line-clamp-2 leading-relaxed">
+                                {tmpl.content.headline}
+                              </p>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-zinc-100">
-                              <span className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: tmpl.colors.primary }} />
-                              <span className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: tmpl.colors.secondary }} />
-                              <span className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: tmpl.colors.accent }} />
-                              <span className="text-[11px] font-bold text-zinc-400 ml-auto capitalize">{tmpl.visualPersonality} effect</span>
+                            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-zinc-100/90">
+                              <div className="flex items-center -space-x-1">
+                                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: tmpl.colors.primary }} />
+                                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: tmpl.colors.secondary }} />
+                                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: tmpl.colors.accent }} />
+                              </div>
+                              <span className="text-[10px] font-bold text-zinc-400 capitalize tracking-tight">
+                                {tmpl.visualPersonality} effect
+                              </span>
                             </div>
                           </div>
                         );
