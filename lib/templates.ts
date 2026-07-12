@@ -22,6 +22,7 @@ export interface ExperienceTemplate {
     noBtnOptions?: string[];
     postYesHeadline: string;
     postYesSubtext: string;
+    handwrittenMessage?: string;
   };
   visualPersonality: VisualPersonality;
   isCustom: boolean;
@@ -51,6 +52,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
       noBtnText: "No chance 🛑",
       postYesHeadline: "Best. Decision. Ever. 🎉",
       postYesSubtext: "You just made me the happiest person around! Check your DMs shortly—we're celebrating in style. 🌹✨",
+      handwrittenMessage: "It's a date! Can't wait to see you then 💕",
     },
     visualPersonality: "roses",
     isCustom: false,
@@ -78,6 +80,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
       noBtnText: "I'm boring 😴",
       postYesHeadline: "It's a Date! 🥂✨",
       postYesSubtext: "Get your favorite outfit ready. I'll pick you up at 7:00 PM sharp. Prepare for a 5-star night under the city lights!",
+      handwrittenMessage: "See you under the stars ✨",
     },
     visualPersonality: "stars",
     isCustom: false,
@@ -105,6 +108,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
       noBtnText: "Maybe next year 🙈",
       postYesHeadline: "Forever Yours ❤️🔥",
       postYesSubtext: "Thank you for being my rock, my best friend, and my greatest love. Tonight is all about us!",
+      handwrittenMessage: "Here's to us, forever and always 🥂",
     },
     visualPersonality: "golden",
     isCustom: false,
@@ -132,6 +136,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
       noBtnText: "Let's keep it complicated 👻",
       postYesHeadline: "Official Status: Locked! 🔐💖",
       postYesSubtext: "Brace yourself—you're officially my plus-one to every wedding, dinner party, and lazy Sunday brunch from now on!",
+      handwrittenMessage: "No taking it back now! 😉",
     },
     visualPersonality: "glitch",
     isCustom: false,
@@ -159,6 +164,7 @@ export const PREBUILT_TEMPLATES: ExperienceTemplate[] = [
       noBtnText: "Call security 🚨",
       postYesHeadline: "TACO TIME BABY! 🌮🚀",
       postYesSubtext: "You have unlocked the highest tier of affection! Prepare for overwhelming hype, legendary memes, and unconditional loyalty!",
+      handwrittenMessage: "Get ready for those 500 tacos 🌮🔥",
     },
     visualPersonality: "chaos",
     isCustom: false,

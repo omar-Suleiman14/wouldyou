@@ -24,6 +24,7 @@ export default defineSchema({
       noBtnOptions: v.optional(v.array(v.string())),
       postYesHeadline: v.string(),
       postYesSubtext: v.string(),
+      handwrittenMessage: v.optional(v.string()),
     }),
     visualPersonality: v.union(
       v.literal("roses"),

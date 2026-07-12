@@ -53,7 +53,7 @@ export default function LandingPage() {
   const [copiedCmd, setCopiedCmd] = useState(false);
 
   const copyCommand = () => {
-    navigator.clipboard.writeText("git clone https://github.com/omar-Suleiman14/wouldyou.git && cd wouldyou && npm i && npm run dev");
+    navigator.clipboard.writeText("git clone https://github.com/omar-Suleiman14/wouldu.git && cd wouldu && npm i && npm run dev");
     setCopiedCmd(true);
     setTimeout(() => setCopiedCmd(false), 2500);
   };
@@ -169,7 +169,7 @@ export default function LandingPage() {
             <div className="flex-1 max-w-md mx-4">
               <div className="w-full flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white border border-black/[0.06] text-xs font-mono text-zinc-600 shadow-sm truncate">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping shrink-0" />
-                <span>wouldyou.app/ask/valentine-for-3862</span>
+                <span>wouldu.app/ask/valentine-for-3862</span>
               </div>
             </div>
             <div className="text-xs font-bold text-zinc-500 flex items-center gap-1.5">
@@ -376,10 +376,10 @@ export default function LandingPage() {
             <div className="space-y-2.5 font-bold">
               <p className="text-zinc-400 font-normal"># Clone &amp; launch your own interactive studio locally</p>
               <p className="break-all sm:break-normal whitespace-pre-wrap text-zinc-900">
-                <span className="text-pink-600 font-black">$</span> git clone https://github.com/omar-Suleiman14/wouldyou.git
+                <span className="text-pink-600 font-black">$</span> git clone https://github.com/omar-Suleiman14/wouldu.git
               </p>
               <p className="break-all sm:break-normal whitespace-pre-wrap text-zinc-900">
-                <span className="text-pink-600 font-black">$</span> cd wouldyou &amp;&amp; npm install &amp;&amp; npm run dev
+                <span className="text-pink-600 font-black">$</span> cd wouldu &amp;&amp; npm install &amp;&amp; npm run dev
               </p>
             </div>
           </div>
@@ -416,16 +416,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="py-10 px-6 border-t border-black/[0.06] text-center text-xs text-zinc-500 bg-white flex flex-col sm:flex-row items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-2 font-bold text-zinc-600">
-          <Heart className="w-3.5 h-3.5 text-pink-600 fill-pink-600" />
-          <span>wouldyou.app · Open Source Interactive Studio</span>
-        </div>
-        <div className="mt-4 sm:mt-0 flex items-center gap-6 font-medium text-zinc-600">
-          <Link href="/studio" className="hover:text-zinc-950 transition-colors">Studio</Link>
-          <Link href="/date-night" className="hover:text-zinc-950 transition-colors">Date Night Demo</Link>
-          <Link href="/anniversary" className="hover:text-zinc-950 transition-colors">Anniversary Demo</Link>
-          <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-zinc-950 transition-colors">GitHub</a>
+      <footer className="w-full py-10 px-6 border-t border-black/[0.06] bg-white text-xs text-zinc-500">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 font-bold text-zinc-600">
+            <Heart className="w-3.5 h-3.5 text-pink-600 fill-pink-600" />
+            <span>wouldu.app · Open Source Interactive Studio</span>
+          </div>
+          <div className="flex items-center gap-6 font-medium text-zinc-600">
+            <Link href="/studio" className="hover:text-zinc-950 transition-colors">Studio</Link>
+            <Link href="/valentine" className="hover:text-zinc-950 transition-colors">Valentine Demo</Link>
+            <a href="https://github.com/omar-Suleiman14/wouldu" target="_blank" rel="noreferrer" className="hover:text-zinc-950 transition-colors">GitHub</a>
+          </div>
         </div>
       </footer>
     </div>

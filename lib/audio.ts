@@ -1,4 +1,4 @@
-// Web Audio API Synthesizer for WouldYou Interactive Experience
+// Web Audio API Synthesizer for WouldU Interactive Experience
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -17,7 +17,7 @@ class SoundEngine {
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {});
+      this.ctx.resume().catch(() => { });
     }
     return this.ctx;
   }
@@ -33,34 +33,56 @@ class SoundEngine {
     return this.isMuted;
   }
 
+  public unlock(): void {
+    if (typeof window === "undefined" || this.isMuted) return;
+    const ctx = this.getContext();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(() => { });
+    }
+  }
+
   /**
    * Play a playful pitch-bending "whoosh/boing" when No button escapes
    */
   public playEscapeSound(): void {
+    this.unlock();
     const ctx = this.getContext();
     if (!ctx) return;
 
     try {
-      const osc = ctx.createOscillator();
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => { });
+      }
+
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      // Alternate between a rising boing and a falling zip
-      const isRising = Math.random() > 0.4;
-      const startFreq = isRising ? 220 : 640;
-      const endFreq = isRising ? 680 : 180;
+      // Cartoon boing / slide whistle effect (triangle + sine)
+      const isRising = Math.random() > 0.45;
+      const startFreq = isRising ? 220 : 780;
+      const endFreq = isRising ? 820 : 190;
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + 0.18);
+      osc1.type = "triangle";
+      osc1.frequency.setValueAtTime(startFreq, now);
+      osc1.frequency.exponentialRampToValueAtTime(endFreq, now + 0.22);
 
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(startFreq * 1.5, now);
+      osc2.frequency.exponentialRampToValueAtTime(endFreq * 1.5, now + 0.22);
 
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0.45, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
       gain.connect(ctx.destination);
 
-      osc.start();
-      osc.stop(ctx.currentTime + 0.2);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.25);
+      osc2.stop(now + 0.25);
     } catch {
       // Audio context might not be allowed yet
     }
@@ -198,7 +220,7 @@ class SoundEngine {
     const ctx = this.ctx;
     if (!ctx || !this.ambientGain) {
       this.ambientOscillators.forEach((o) => {
-        try { o.stop(); } catch {}
+        try { o.stop(); } catch { }
       });
       this.ambientOscillators = [];
       this.isAmbientPlaying = false;
@@ -210,7 +232,7 @@ class SoundEngine {
       this.ambientGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 1.5);
       setTimeout(() => {
         this.ambientOscillators.forEach((osc) => {
-          try { osc.stop(); } catch {}
+          try { osc.stop(); } catch { }
         });
         this.ambientOscillators = [];
         this.isAmbientPlaying = false;

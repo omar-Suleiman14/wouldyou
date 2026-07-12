@@ -148,7 +148,7 @@ function StatsDrawer({ slug }: { slug: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/80 hover:bg-white text-zinc-600 hover:text-zinc-900 border border-black/[0.08] shadow-sm text-xs font-bold backdrop-blur-md transition-all cursor-pointer"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/90 hover:bg-white text-zinc-700 hover:text-zinc-950 border border-black/[0.08] shadow-lg text-xs font-extrabold backdrop-blur-xl transition-all cursor-pointer"
         suppressHydrationWarning
       >
         <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
@@ -254,9 +254,10 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
   }, []);
 
   /**
-   * 240fps GPU-native runaway — bounded INSIDE the card, never off-screen
+   * Smooth GPU-native runaway — strictly bounded inside the card container without causing scrolling
    */
   const triggerRunaway = useCallback(() => {
+    soundEngine.unlock();
     if (!cardRef.current || !noBtnRef.current || isTauntingRef.current) return;
     isTauntingRef.current = true;
 
@@ -266,70 +267,51 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
     const cardRect = cardRef.current.getBoundingClientRect();
     const btnRect = noBtnRef.current.getBoundingClientRect();
 
-    // 240fps GPU-native runaway — escapes OUT of container across full screen viewport
-    const btnW = btnRect.width || 150;
+    // Calculate maximum safe displacement strictly inside the card interior
+    const btnW = btnRect.width || 140;
     const btnH = btnRect.height || 54;
-    const winW = typeof window !== "undefined" ? window.innerWidth : 1000;
-    const winH = typeof window !== "undefined" ? window.innerHeight : 800;
-    const safeX = (winW / 2) - (btnW / 2) - 40;
-    const safeY = (winH / 2) - (btnH / 2) - 40;
+    const maxX = Math.max(20, (cardRect.width / 2) - (btnW / 2) - 30);
+    const maxY = Math.max(20, (cardRect.height / 2) - (btnH / 2) - 30);
 
     const cx = currentPosRef.current.x;
     const cy = currentPosRef.current.y;
 
-    // Pick direction that moves >90px away from current pos
-    let tx = (Math.random() - 0.5) * 2 * safeX;
-    let ty = (Math.random() - 0.5) * 2 * safeY;
-    if (Math.abs(tx - cx) < 90) tx = (tx > 0 ? -1 : 1) * safeX * 0.85;
-    if (Math.abs(ty - cy) < 60) ty = (ty > 0 ? -1 : 1) * safeY * 0.85;
+    let tx = (Math.random() - 0.5) * 2 * maxX;
+    let ty = (Math.random() - 0.5) * 2 * maxY;
 
-    // Clamp strictly to full browser window bounds
-    tx = Math.max(-safeX, Math.min(safeX, tx));
-    ty = Math.max(-safeY, Math.min(safeY, ty));
+    // Ensure noticeable jump away from current position
+    if (Math.abs(tx - cx) < 70) tx = (tx > 0 ? -1 : 1) * maxX * 0.8;
+    if (Math.abs(ty - cy) < 45) ty = (ty > 0 ? -1 : 1) * maxY * 0.8;
 
-    const startX = cx;
-    const startY = cy;
-    const startTime = performance.now();
-    const duration = 260;
-
-    const easeOutBack = (t: number) => {
-      const c1 = 1.5;
-      const c3 = c1 + 1;
-      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-    };
+    tx = Math.max(-maxX, Math.min(maxX, tx));
+    ty = Math.max(-maxY, Math.min(maxY, ty));
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    const animate = (now: number) => {
-      const t = Math.min((now - startTime) / duration, 1);
-      const ease = easeOutBack(t);
-      const px = startX + (tx - startX) * ease;
-      const py = startY + (ty - startY) * ease;
+    if (noBtnRef.current) {
+      noBtnRef.current.style.transition = "transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.15)";
+      noBtnRef.current.style.transform = `translate3d(${tx}px,${ty}px,0)`;
+    }
+    currentPosRef.current = { x: tx, y: ty };
 
-      if (noBtnRef.current) {
-        noBtnRef.current.style.transform = `translate3d(${px}px,${py}px,0)`;
-      }
+    setTimeout(() => {
+      isTauntingRef.current = false;
+    }, 280);
 
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      } else {
-        currentPosRef.current = { x: tx, y: ty };
-        isTauntingRef.current = false;
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-    setNoTauntIdx((p) => p + 1);
-    setEscapeCount((p) => p + 1);
+    setTimeout(() => {
+      setNoTauntIdx((p) => p + 1);
+      setEscapeCount((p) => p + 1);
+    }, 40);
   }, []);
 
-  // Proximity detection — on card mousemove for tighter control
+  // Proximity detection on card mousemove
   const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (step !== "question" || !noBtnRef.current || !cardRef.current) return;
+    soundEngine.unlock();
+    if (step !== "question" || !noBtnRef.current || !cardRef.current || isTauntingRef.current) return;
     const btnRect = noBtnRef.current.getBoundingClientRect();
     const cx = btnRect.left + btnRect.width / 2;
     const cy = btnRect.top + btnRect.height / 2;
-    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 88) triggerRunaway();
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 78) triggerRunaway();
   }, [step, triggerRunaway]);
 
   const handleYesClick = () => {
@@ -419,8 +401,9 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
         <motion.div
           ref={cardRef}
           onMouseMove={handleCardMouseMove}
+          onPointerDown={() => soundEngine.unlock()}
           style={{ backgroundColor: colors?.cardBg || "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)" }}
-          className="relative w-[85vw] h-[85vh] max-w-[1300px] max-h-[900px] rounded-[3.5rem] shadow-[0_32px_100px_rgba(0,0,0,0.18)] p-6 sm:p-16 flex flex-col items-center justify-center overflow-y-auto backdrop-blur-2xl text-center"
+          className={`relative w-[85vw] h-[85vh] max-w-[1300px] max-h-[900px] rounded-[3.5rem] shadow-[0_32px_100px_rgba(0,0,0,0.18)] p-6 sm:p-16 flex flex-col items-center justify-center ${step === "question" ? "overflow-hidden" : "overflow-y-auto"} backdrop-blur-2xl text-center`}
         >
           <AnimatePresence mode="wait">
 
@@ -473,6 +456,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
                       suppressHydrationWarning
                       type="button"
                       ref={noBtnRef}
+                      onPointerEnter={() => soundEngine.unlock()}
                       onPointerDown={triggerRunaway}
                       onTouchStart={(e) => { e.preventDefault(); triggerRunaway(); }}
                       className="px-8 py-4 rounded-2xl font-bold text-sm sm:text-base text-zinc-600 bg-black/[0.05] hover:bg-black/[0.08] border border-black/[0.08] flex items-center justify-center gap-2 cursor-pointer z-40 relative whitespace-nowrap shadow-sm"
@@ -577,7 +561,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
                       fontFamily: "'Caveat', 'Sacramento', 'Dancing Script', 'Bradley Hand', 'Brush Script MT', cursive, font-serif",
                     }}
                   >
-                    &ldquo;It&apos;s a date! Can&apos;t wait to see you then 💕&rdquo;
+                    &ldquo;{content?.handwrittenMessage || "It's a date! Can't wait to see you then 💕"}&rdquo;
                   </p>
                 </motion.div>
               </motion.div>
@@ -588,11 +572,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
       </div>
 
       {/* ── Hidden stats drawer in footer ── */}
-      {!isPreview && slug && slug.startsWith("/") && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30">
-          <StatsDrawer slug={slug} />
-        </div>
-      )}
+      {!isPreview && slug && slug.startsWith("/") && <StatsDrawer slug={slug} />}
     </div>
   );
 }

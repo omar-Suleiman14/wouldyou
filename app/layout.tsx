@@ -18,12 +18,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "WouldYou. | The Question They Can't Escape",
+  title: "WouldU. | The Question They Can't Escape",
   description:
     "Build beautiful, interactive will-you-go-out-with-me experiences. Physics-powered 'No' button, calendar date picking, and real-time response tracking — all in one shareable link.",
   icons: { icon: "/favicon.ico" },
   openGraph: {
-    title: "WouldYou. | The Question They Can't Escape",
+    title: "WouldU. | The Question They Can't Escape",
     description: "An absurdly over-animated, Apple-polished way to ask someone out.",
     type: "website",
   },

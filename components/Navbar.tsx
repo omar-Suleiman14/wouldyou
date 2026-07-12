@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { soundEngine } from "../lib/audio";
 import { triggerHaptic } from "../lib/haptics";
-import { Sparkles, Heart, Compass, GitFork } from "lucide-react";
+import { Sparkles, Heart, GitFork } from "lucide-react";
 
 interface NavbarProps {
   onNavigateSection?: (sectionId: string) => void;
@@ -27,11 +27,10 @@ export function Navbar({ onNavigateSection }: NavbarProps) {
   return (
     <header
       suppressHydrationWarning
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${scrolled
           ? "bg-white/90 backdrop-blur-xl border-b border-black/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
           : "bg-white/80 backdrop-blur-lg border-b border-black/[0.05]"
-      }`}
+        }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
         {/* Brand Logo */}
@@ -44,49 +43,14 @@ export function Navbar({ onNavigateSection }: NavbarProps) {
             <Heart className="w-4 h-4 text-white fill-white animate-pulse" />
           </div>
           <span className="text-base sm:text-lg font-black tracking-tight text-zinc-950">
-            wouldyou<span className="text-pink-600">.app</span>
+            wouldu<span className="text-pink-600">.app</span>
           </span>
         </Link>
 
-        {/* Center & Right Nav Items */}
+        {/* Right Nav Items */}
         <div className="flex items-center gap-3 sm:gap-6">
-          <nav className="hidden md:flex items-center gap-1 sm:gap-2">
-            <button
-              onClick={() => {
-                triggerHaptic("tick");
-                soundEngine.playClickSound();
-                if (isHome && onNavigateSection) {
-                  onNavigateSection("templates");
-                } else {
-                  window.location.href = "/#templates";
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                isHome
-                  ? "text-zinc-700 hover:text-zinc-950 hover:bg-black/[0.05]"
-                  : "text-zinc-500 hover:text-zinc-900 hover:bg-black/[0.04]"
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5 text-pink-500" />
-              Templates
-            </button>
-
-            <Link
-              href="/studio"
-              onClick={() => { triggerHaptic("tick"); soundEngine.playClickSound(); }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-full transition-all ${
-                isStudio
-                  ? "bg-zinc-900 text-white shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-900 hover:bg-black/[0.04]"
-              }`}
-            >
-              <Sparkles className={`w-3.5 h-3.5 ${isStudio ? "text-amber-400" : "text-amber-500"}`} />
-              Studio
-            </Link>
-          </nav>
-
           <a
-            href="https://github.com/omar-Suleiman14/wouldyou"
+            href="https://github.com/omar-Suleiman14/wouldu"
             target="_blank"
             rel="noreferrer"
             className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-zinc-950 transition-colors bg-black/[0.04] hover:bg-black/[0.07] px-3.5 py-1.5 rounded-full border border-black/[0.06]"

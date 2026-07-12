@@ -419,7 +419,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                             <TextInput value={content.yesBtnText} onChange={(v) => setContent({ ...content, yesBtnText: v })} />
                           </div>
                           <div>
-                            <FieldLabel>No Button (Runaway Initial Text)</FieldLabel>
+                            <FieldLabel>No Button </FieldLabel>
                             <TextInput value={content.noBtnText} onChange={(v) => setContent({ ...content, noBtnText: v })} />
                           </div>
                         </div>
@@ -450,6 +450,14 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                         <div>
                           <FieldLabel>Post-Yes Subtext</FieldLabel>
                           <Textarea value={content.postYesSubtext} onChange={(v) => setContent({ ...content, postYesSubtext: v })} rows={2} />
+                        </div>
+                        <div>
+                          <FieldLabel>Post-Yes Handwritten Note ✍️</FieldLabel>
+                          <TextInput
+                            placeholder="It's a date! Can't wait to see you then 💕"
+                            value={content.handwrittenMessage || ""}
+                            onChange={(v) => setContent({ ...content, handwrittenMessage: v })}
+                          />
                         </div>
                       </div>
                     </div>
@@ -531,7 +539,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                       <div>
                         <FieldLabel hint="Optional custom URL">Custom Link Path</FieldLabel>
                         <div className="flex items-center rounded-2xl border border-black/[0.08] bg-white focus-within:ring-2 focus-within:ring-pink-500/30 overflow-hidden shadow-inner">
-                          <span className="pl-4 pr-1 text-xs text-zinc-400 font-mono whitespace-nowrap">wouldyou.app/ask/</span>
+                          <span className="pl-4 pr-1 text-xs text-zinc-400 font-mono whitespace-nowrap">wouldu.app/ask/</span>
                           <input
                             suppressHydrationWarning
                             type="text"
