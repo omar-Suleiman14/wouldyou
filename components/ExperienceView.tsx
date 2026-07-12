@@ -504,7 +504,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
                       onPointerEnter={() => soundEngine.unlock()}
                       onPointerDown={triggerRunaway}
                       onTouchStart={(e) => { e.preventDefault(); triggerRunaway(); }}
-                      className="absolute left-0 top-0 w-[160px] sm:w-[170px] h-[60px] sm:h-[64px] px-3 rounded-2xl font-bold text-sm sm:text-base text-zinc-600 bg-black/[0.05] hover:bg-black/[0.08] border border-black/[0.08] flex items-center justify-center gap-1.5 cursor-pointer z-40 select-none shadow-sm truncate"
+                      className="absolute left-0 top-0 w-[160px] sm:w-[170px] h-[60px] sm:h-[64px] px-3 rounded-2xl font-bold text-sm sm:text-base text-zinc-700 bg-zinc-200/70 hover:bg-zinc-200/90 backdrop-blur-md border border-black/[0.10] flex items-center justify-center gap-1.5 cursor-pointer z-40 select-none shadow-sm truncate"
                       style={{ willChange: "transform", backfaceVisibility: "hidden" }}
                     >
                       <span suppressHydrationWarning className="truncate">{escapeCount > 0 ? activeNoTaunts[noTauntIdx % activeNoTaunts.length] : content.noBtnText}</span>

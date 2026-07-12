@@ -40,7 +40,7 @@ const STEPS: { id: StepId; label: string; icon: React.ReactNode }[] = [
 
 function StepProgress({ current, steps }: { current: number; steps: typeof STEPS }) {
   return (
-    <div className="flex items-center gap-2 sm:gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar w-full">
+    <div className="flex items-center gap-2 sm:gap-3 mb-6 pt-3 pb-3 px-1 -mx-1 overflow-x-auto no-scrollbar w-full">
       {steps.map((s, i) => {
         const done = i < current;
         const active = i === current;
@@ -51,11 +51,11 @@ function StepProgress({ current, steps }: { current: number; steps: typeof STEPS
                 className={`w-8 h-8 min-w-[32px] min-h-[32px] aspect-square rounded-full flex items-center justify-center text-xs font-black leading-none select-none shrink-0 transition-all duration-300 ${done
                   ? "bg-emerald-500 text-white shadow-sm"
                   : active
-                    ? "bg-zinc-950 text-white shadow-md scale-105"
+                    ? "bg-zinc-950 text-white shadow-md ring-4 ring-pink-500/10"
                     : "bg-zinc-100 text-zinc-400"
                   }`}
               >
-                {done ? <Check className="w-4 h-4 shrink-0" /> : <span className="translate-y-[0.5px]">{i + 1}</span>}
+                {done ? <Check className="w-4 h-4 shrink-0" /> : <span>{i + 1}</span>}
               </div>
               <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-zinc-900 font-black" : done ? "text-emerald-600" : "text-zinc-400 hidden sm:block"}`}>
                 {s.label}
