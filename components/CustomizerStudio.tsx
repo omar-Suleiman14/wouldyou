@@ -124,6 +124,8 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
   const [content, setContent] = useState(base.content);
   const [visualPersonality, setVisualPersonality] = useState<VisualPersonality>(base.visualPersonality);
   const [customSlugInput, setCustomSlugInput] = useState("");
+  const [enableDatePicker, setEnableDatePicker] = useState(base.enableDatePicker ?? true);
+  const [isRtl, setIsRtl] = useState(base.isRtl ?? false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSlug, setGeneratedSlug] = useState<string | null>(null);
@@ -141,6 +143,8 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
     setColors(tmpl.colors);
     setContent(tmpl.content);
     setVisualPersonality(tmpl.visualPersonality);
+    setEnableDatePicker(tmpl.enableDatePicker ?? true);
+    setIsRtl(tmpl.isRtl ?? false);
   };
 
   const goNext = () => {
@@ -170,6 +174,8 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
         colors,
         content,
         visualPersonality,
+        enableDatePicker,
+        isRtl,
         customSlug: slug || undefined,
       });
       soundEngine.playYesFanfare();
@@ -203,6 +209,8 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
     colors,
     content,
     visualPersonality,
+    enableDatePicker,
+    isRtl,
     slug: generatedSlug || "/preview",
   };
 
@@ -425,8 +433,8 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                           <TextInput value={content.headline} onChange={(v) => setContent({ ...content, headline: v })} />
                         </div>
                         <div>
-                          <FieldLabel>Subtext</FieldLabel>
-                          <Textarea value={content.subtext} onChange={(v) => setContent({ ...content, subtext: v })} rows={3} />
+                          <FieldLabel>Subtext (Optional)</FieldLabel>
+                          <Textarea placeholder="Optional description or pitch..." value={content.subtext || ""} onChange={(v) => setContent({ ...content, subtext: v })} rows={3} />
                         </div>
                       </div>
 
@@ -464,6 +472,73 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                         </div>
                       </div>
                     </div>
+
+                    {/* iOS Style Toggles for Date Picker & RTL */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                      <div
+                        onClick={() => {
+                          triggerHaptic("tick");
+                          soundEngine.playClickSound(1020);
+                          setEnableDatePicker(!enableDatePicker);
+                        }}
+                        className="rounded-3xl bg-zinc-50 border border-zinc-200/80 p-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-zinc-100/70 transition-all select-none shadow-sm"
+                      >
+                        <div className="flex-1">
+                          <div className="font-extrabold text-sm text-zinc-900 flex items-center gap-2">
+                            <span>Calendar / Date Picker</span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-extrabold">Optional</span>
+                          </div>
+                          <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
+                            Show interactive date &amp; time picker immediately after they click Yes!
+                          </p>
+                        </div>
+                        <div
+                          className={`w-13 h-7 rounded-full transition-colors duration-300 p-1 relative flex items-center shrink-0 ${
+                            enableDatePicker ? "bg-emerald-500" : "bg-zinc-300"
+                          }`}
+                          style={{ width: "52px", height: "30px" }}
+                        >
+                          <motion.div
+                            animate={{ x: enableDatePicker ? 22 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            className="w-5.5 h-5.5 rounded-full bg-white shadow-md"
+                            style={{ width: "22px", height: "22px" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => {
+                          triggerHaptic("tick");
+                          soundEngine.playClickSound(1030);
+                          setIsRtl(!isRtl);
+                        }}
+                        className="rounded-3xl bg-zinc-50 border border-zinc-200/80 p-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-zinc-100/70 transition-all select-none shadow-sm"
+                      >
+                        <div className="flex-1">
+                          <div className="font-extrabold text-sm text-zinc-900 flex items-center gap-2">
+                            <span>RTL Text Direction</span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold">Arabic / Hebrew</span>
+                          </div>
+                          <p className="text-xs text-zinc-500 font-medium mt-1 leading-relaxed">
+                            Format typography &amp; layout for right-to-left languages across your link.
+                          </p>
+                        </div>
+                        <div
+                          className={`w-13 h-7 rounded-full transition-colors duration-300 p-1 relative flex items-center shrink-0 ${
+                            isRtl ? "bg-purple-600" : "bg-zinc-300"
+                          }`}
+                          style={{ width: "52px", height: "30px" }}
+                        >
+                          <motion.div
+                            animate={{ x: isRtl ? 22 : 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            className="w-5.5 h-5.5 rounded-full bg-white shadow-md"
+                            style={{ width: "22px", height: "22px" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -475,15 +550,15 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                       <p className="text-xs text-zinc-500 font-medium">Configure the celebration screen displayed immediately when they click Yes! 🎉</p>
                     </div>
 
-                    <div className="space-y-5 rounded-3xl bg-zinc-50 border border-zinc-200/80 p-6 max-w-xl">
+                    <div className="space-y-5 rounded-3xl bg-zinc-50 border border-zinc-200/80 p-6 w-full">
                       <div className="font-extrabold text-xs text-pink-600 uppercase tracking-wider">Celebration Details</div>
                       <div>
                         <FieldLabel>Post-Yes Headline</FieldLabel>
                         <TextInput value={content.postYesHeadline} onChange={(v) => setContent({ ...content, postYesHeadline: v })} />
                       </div>
                       <div>
-                        <FieldLabel>Post-Yes Subtext</FieldLabel>
-                        <Textarea value={content.postYesSubtext} onChange={(v) => setContent({ ...content, postYesSubtext: v })} rows={3} />
+                        <FieldLabel>Post-Yes Subtext (Optional)</FieldLabel>
+                        <Textarea placeholder="Optional celebration message..." value={content.postYesSubtext || ""} onChange={(v) => setContent({ ...content, postYesSubtext: v })} rows={3} />
                       </div>
                       <div>
                         <FieldLabel>Post-Yes Handwritten Note ✍️</FieldLabel>

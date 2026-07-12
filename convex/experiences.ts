@@ -88,12 +88,12 @@ export const createExperience = mutation({
     }),
     content: v.object({
       headline: v.string(),
-      subtext: v.string(),
+      subtext: v.optional(v.string()),
       yesBtnText: v.string(),
       noBtnText: v.string(),
       noBtnOptions: v.optional(v.array(v.string())),
       postYesHeadline: v.string(),
-      postYesSubtext: v.string(),
+      postYesSubtext: v.optional(v.string()),
       handwrittenMessage: v.optional(v.string()),
     }),
     visualPersonality: v.union(
@@ -104,6 +104,8 @@ export const createExperience = mutation({
       v.literal("chaos")
     ),
     customSlug: v.optional(v.string()),
+    enableDatePicker: v.optional(v.boolean()),
+    isRtl: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     let slug = "";
@@ -134,6 +136,8 @@ export const createExperience = mutation({
       content: args.content,
       visualPersonality: args.visualPersonality,
       isCustom: true,
+      enableDatePicker: args.enableDatePicker ?? true,
+      isRtl: args.isRtl ?? false,
       views: 1,
       yesCount: 0,
     });

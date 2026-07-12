@@ -38,9 +38,8 @@ const NO_TAUNTS = [
   "Almost... not 😂",
 ];
 
-// ─── HIDDEN STATS DRAWER (Shadcn bottom drawer on mobile, Side sheet on desktop) ───
-function StatsDrawer({ slug }: { slug: string }) {
-  const [open, setOpen] = useState(false);
+// ─── HIDDEN STATS DRAWER (Triggered by clicking the title pill) ───
+function StatsDrawer({ slug, open, onClose }: { slug: string; open: boolean; onClose: () => void }) {
   const stats = useQuery(api.experiences.getResponseStats, { slug });
   const responses = useQuery(api.experiences.getResponses, { slug });
 
@@ -53,7 +52,7 @@ function StatsDrawer({ slug }: { slug: string }) {
         </div>
         <button
           type="button"
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           className="p-1.5 rounded-full hover:bg-black/[0.06] transition-colors cursor-pointer"
         >
           <X className="w-4 h-4 text-zinc-500" />
@@ -144,52 +143,37 @@ function StatsDrawer({ slug }: { slug: string }) {
   );
 
   return (
-    <div className="hidden sm:block">
-      {/* Trigger pill (Desktop only) */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/90 hover:bg-white text-zinc-700 hover:text-zinc-950 border border-black/[0.08] shadow-lg text-xs font-extrabold backdrop-blur-xl transition-all cursor-pointer"
-        suppressHydrationWarning
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
-        <span>History &amp; Stats</span>
-        <span className="text-zinc-400 font-normal">({stats ? `${stats.views || 0} views · ${stats.yes || 0} yes` : "···"})</span>
-      </button>
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+          />
 
-      {/* Responsive Drawer / Side Sheet */}
-      <AnimatePresence>
-        {open && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-            />
-
-            {/* Desktop Side Sheet */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              className="fixed top-0 right-0 bottom-0 z-50 flex w-[420px] h-screen overflow-y-auto p-8 border-l flex-col justify-between"
-              style={{
-                background: "rgba(255,255,255,0.98)",
-                backdropFilter: "blur(28px)",
-                borderColor: "rgba(0,0,0,0.08)",
-                boxShadow: "-24px 0 80px rgba(0,0,0,0.15)",
-              }}
-            >
-              {drawerContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+          {/* Side Sheet */}
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
+            className="fixed top-0 right-0 bottom-0 z-50 flex w-[420px] max-w-full h-screen overflow-y-auto p-8 border-l flex-col justify-between"
+            style={{
+              background: "rgba(255,255,255,0.98)",
+              backdropFilter: "blur(28px)",
+              borderColor: "rgba(0,0,0,0.08)",
+              boxShadow: "-24px 0 80px rgba(0,0,0,0.15)",
+            }}
+          >
+            {drawerContent}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -217,6 +201,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
 
   const [noTauntIdx, setNoTauntIdx] = useState(0);
   const [escapeCount, setEscapeCount] = useState(0);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [confirmedDate, setConfirmedDate] = useState<{ date: string; time: string } | null>(null);
 
@@ -272,36 +257,36 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
     const minTy = cardRect.top + pad - restTop;
     const maxTy = cardRect.bottom - pad - (restTop + btnH);
 
+    const centerTx = (minTx + maxTx) / 2;
+    const centerTy = (minTy + maxTy) / 2;
+
     let tx = 0;
     let ty = 0;
 
-    // Evasion vector away from cursor if available, otherwise jump cleanly
-    if (e && "clientX" in e && e.clientX) {
-      const btnCenterX = btnRect.left + btnRect.width / 2;
-      const btnCenterY = btnRect.top + btnRect.height / 2;
-      const dx = btnCenterX - e.clientX;
-      const dy = btnCenterY - e.clientY;
-      const dist = Math.hypot(dx, dy) || 1;
-      tx = cx + (dx / dist) * 220;
-      ty = cy + (dy / dist) * 220;
+    // First evasion moves directly into the center with a snappy animation; subsequent escapes leap far across the card
+    if (cx === 0 && cy === 0) {
+      tx = centerTx;
+      ty = centerTy;
     } else {
-      tx = cx + (Math.random() > 0.5 ? 180 : -180);
-      ty = cy + (Math.random() > 0.5 ? 120 : -120);
-    }
+      let found = false;
+      const mouseX = (e && ("clientX" in e ? (e as React.MouseEvent).clientX : "touches" in e && (e as React.TouchEvent).touches[0] ? (e as React.TouchEvent).touches[0].clientX : cx)) ?? cx;
+      const mouseY = (e && ("clientY" in e ? (e as React.MouseEvent).clientY : "touches" in e && (e as React.TouchEvent).touches[0] ? (e as React.TouchEvent).touches[0].clientY : cy)) ?? cy;
 
-    // Ensure bold jump; if blocked by border, flip direction towards the center/opposite side
-    if (Math.hypot(tx - cx, ty - cy) < 130 || tx > maxTx - 10 || tx < minTx + 10) {
-      if (cx > (minTx + maxTx) / 2) {
-        tx = minTx + Math.random() * Math.max(20, (maxTx - minTx) * 0.45);
-      } else {
-        tx = maxTx - Math.random() * Math.max(20, (maxTx - minTx) * 0.45);
+      for (let i = 0; i < 12; i++) {
+        const randX = minTx + Math.random() * (maxTx - minTx);
+        const randY = minTy + Math.random() * (maxTy - minTy);
+        const distFromCurrent = Math.hypot(randX - cx, randY - cy);
+        const distFromMouse = Math.hypot((cardRect.left + pad + randX) - mouseX, (cardRect.top + pad + randY) - mouseY);
+        if (distFromCurrent > 170 && distFromMouse > 140) {
+          tx = randX;
+          ty = randY;
+          found = true;
+          break;
+        }
       }
-    }
-    if (ty > maxTy - 10 || ty < minTy + 10) {
-      if (cy > (minTy + maxTy) / 2) {
-        ty = minTy + Math.random() * Math.max(20, (maxTy - minTy) * 0.45);
-      } else {
-        ty = maxTy - Math.random() * Math.max(20, (maxTy - minTy) * 0.45);
+      if (!found) {
+        tx = cx < centerTx ? Math.min(maxTx, cx + 240) : Math.max(minTx, cx - 240);
+        ty = cy < centerTy ? Math.min(maxTy, cy + 180) : Math.max(minTy, cy - 180);
       }
     }
 
@@ -311,36 +296,39 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    // Punchy elastic spring transition (`cubic-bezier(0.18, 0.89, 0.32, 1.28)` gives ~28% cartoon bounce/overshoot!)
+    // Fast, snappy, buttery 220ms transition across the card
     if (noBtnRef.current) {
-      noBtnRef.current.style.transition = "transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
+      noBtnRef.current.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1)";
       noBtnRef.current.style.transform = `translate3d(${tx}px,${ty}px,0)`;
     }
     currentPosRef.current = { x: tx, y: ty };
+    setEscapeCount((p) => p + 1);
 
-    // Update React state ONLY after the 350ms spring settles for 100% zero lag mid-transition
+    // Unlock proximity check after 110ms so rapid mouse pursuit triggers immediate successive escapes
+    setTimeout(() => {
+      isTauntingRef.current = false;
+    }, 110);
+
     setTimeout(() => {
       setNoTauntIdx((p) => p + 1);
-      setEscapeCount((p) => p + 1);
-      isTauntingRef.current = false;
-    }, 350);
+    }, 220);
   }, []);
 
-  // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors
+  // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors with generous 140px escape radius
   const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (step !== "question" || isTauntingRef.current || !noBtnRef.current || !cardRef.current) return;
     const now = performance.now();
-    if (now - lastMoveCheckRef.current < 28) return; // Throttled to ~35fps layout check (`0.001ms` return on high refresh rate monitors)
+    if (now - lastMoveCheckRef.current < 16) return; // Throttled to 60fps layout check
     lastMoveCheckRef.current = now;
 
     soundEngine.unlock();
     const btnRect = noBtnRef.current.getBoundingClientRect();
     const cx = btnRect.left + btnRect.width / 2;
     const cy = btnRect.top + btnRect.height / 2;
-    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 84) triggerRunaway(e);
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 140) triggerRunaway(e);
   }, [step, triggerRunaway]);
 
-  const handleYesClick = () => {
+  const handleYesClick = async () => {
     soundEngine.playYesFanfare();
     triggerHaptic("celebrationBoom");
     confetti({ particleCount: 130, spread: 90, origin: { y: 0.65 }, colors: [colors.primary, colors.secondary, colors.accent, "#fff"] });
@@ -348,7 +336,16 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
       confetti({ particleCount: 80, angle: 60, spread: 75, origin: { x: 0 }, colors: [colors.primary, colors.accent] });
       confetti({ particleCount: 80, angle: 120, spread: 75, origin: { x: 1 }, colors: [colors.secondary, "#fff"] });
     }, 220);
-    setStep("calendar");
+
+    if (template.enableDatePicker === false) {
+      if (!isPreview && slug?.startsWith("/")) {
+        await submitResponseMutation({ experienceSlug: slug, answeredYes: true }).catch(() => { });
+        await recordYesMutation({ slug }).catch(() => { });
+      }
+      setStep("celebration");
+    } else {
+      setStep("calendar");
+    }
   };
 
   const handleDateConfirm = async (date: string, time: string) => {
@@ -388,9 +385,16 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
     return `${ds} at ${dh}:${m} ${ampm}`;
   };
 
+  const isRtlActive =
+    Boolean(template.isRtl) ||
+    /[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(
+      `${title || ""} ${content.headline || ""} ${content.subtext || ""} ${content.yesBtnText || ""} ${content.noBtnText || ""} ${content.postYesHeadline || ""} ${content.postYesSubtext || ""}`
+    );
+
   return (
     <div
       suppressHydrationWarning
+      dir={isRtlActive ? "rtl" : "ltr"}
       className="min-h-screen w-full flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500"
       style={{ backgroundColor: colors.background || "#FAFAFA" }}
     >
@@ -416,10 +420,26 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
           </Link>
         )}
 
-        <div suppressHydrationWarning className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/90 backdrop-blur-xl border border-black/[0.08] text-xs font-extrabold text-zinc-800 shadow-md">
-          <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping" />
-          {title}
-        </div>
+        {!isPreview && slug && slug.startsWith("/") ? (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic("tick");
+              soundEngine.playClickSound();
+              setStatsOpen(true);
+            }}
+            suppressHydrationWarning
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/90 hover:bg-white backdrop-blur-xl border border-black/[0.08] text-xs font-extrabold text-zinc-800 shadow-md transition-all cursor-pointer select-none active:scale-95"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping shrink-0" />
+            <span className="truncate max-w-[180px] sm:max-w-xs">{title}</span>
+          </button>
+        ) : (
+          <div suppressHydrationWarning className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/90 backdrop-blur-xl border border-black/[0.08] text-xs font-extrabold text-zinc-800 shadow-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping shrink-0" />
+            <span className="truncate max-w-[180px] sm:max-w-xs">{title}</span>
+          </div>
+        )}
       </div>
 
       {/* ── STEP CONTENT (85% Screen Height & Width Master Container) ── */}
@@ -429,6 +449,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
           ref={cardRef}
           onMouseMove={handleCardMouseMove}
           onPointerDown={() => soundEngine.unlock()}
+          dir={isRtlActive ? "rtl" : "ltr"}
           style={{ backgroundColor: colors?.cardBg || "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)" }}
           className={`relative w-[85vw] h-[85vh] max-w-[1300px] max-h-[900px] rounded-[3.5rem] shadow-[0_32px_100px_rgba(0,0,0,0.18)] p-6 sm:p-16 flex flex-col items-center justify-center ${step === "question" ? "overflow-hidden" : "overflow-y-auto"} backdrop-blur-2xl text-center`}
         >
@@ -458,9 +479,13 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
                 >
                   {displayHeadline}
                 </h1>
-                <p className="text-base sm:text-xl text-zinc-500 max-w-xl mx-auto font-normal leading-relaxed mb-12">
-                  {displaySubtext}
-                </p>
+                {displaySubtext?.trim() ? (
+                  <p className="text-base sm:text-xl text-zinc-500 max-w-xl mx-auto font-normal leading-relaxed mb-12">
+                    {displaySubtext}
+                  </p>
+                ) : (
+                  <div className="mb-8" />
+                )}
 
                 {/* Buttons — Yes button stays 100% fixed dimensions, No button floats isolated in absolute box */}
                 <div suppressHydrationWarning className="relative flex flex-col sm:flex-row items-center justify-center gap-6 mt-4 w-full" style={{ minHeight: 64 }}>
@@ -468,6 +493,10 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
                   <motion.button
                     suppressHydrationWarning
                     type="button"
+                    animate={{
+                      x: escapeCount > 0 ? (typeof window !== "undefined" && window.innerWidth < 640 ? 0 : isRtlActive ? -97 : 97) : 0,
+                    }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleYesClick}
                     style={{ backgroundColor: colors.primary }}
@@ -557,9 +586,13 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
                 >
                   {content.postYesHeadline}
                 </h2>
-                <p className="text-lg sm:text-xl text-zinc-500 font-normal leading-relaxed max-w-md mx-auto mb-8">
-                  {content.postYesSubtext}
-                </p>
+                {content.postYesSubtext?.trim() ? (
+                  <p className="text-lg sm:text-xl text-zinc-500 font-normal leading-relaxed max-w-md mx-auto mb-8">
+                    {content.postYesSubtext}
+                  </p>
+                ) : (
+                  <div className="mb-6" />
+                )}
 
                 {confirmedDate && (
                   <motion.div
@@ -598,11 +631,9 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
         </motion.div>
       </div>
 
-      {/* ── Hidden stats drawer in footer (Desktop only) ── */}
+      {/* ── Hidden stats drawer (Triggered by clicking title) ── */}
       {!isPreview && slug && slug.startsWith("/") && (
-        <div className="hidden sm:block">
-          <StatsDrawer slug={slug} />
-        </div>
+        <StatsDrawer slug={slug} open={statsOpen} onClose={() => setStatsOpen(false)} />
       )}
     </div>
   );

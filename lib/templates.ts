@@ -16,16 +16,18 @@ export interface ExperienceTemplate {
   };
   content: {
     headline: string;
-    subtext: string;
+    subtext?: string;
     yesBtnText: string;
     noBtnText: string;
     noBtnOptions?: string[];
     postYesHeadline: string;
-    postYesSubtext: string;
+    postYesSubtext?: string;
     handwrittenMessage?: string;
   };
   visualPersonality: VisualPersonality;
   isCustom: boolean;
+  enableDatePicker?: boolean;
+  isRtl?: boolean;
   views?: number;
   yesCount?: number;
 }

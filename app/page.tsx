@@ -264,12 +264,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-
-            {/* Simulated footer drawer pill (Desktop only) */}
-            <div className="mt-10 hidden sm:inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/95 border border-black/[0.08] backdrop-blur-md text-xs font-bold text-zinc-700 shadow-md">
-              <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
-              <span>History &amp; Stats Drawer (14 views · 12 yes)</span>
-            </div>
           </div>
         </motion.div>
       </div>

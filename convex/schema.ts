@@ -18,12 +18,12 @@ export default defineSchema({
     }),
     content: v.object({
       headline: v.string(),
-      subtext: v.string(),
+      subtext: v.optional(v.string()),
       yesBtnText: v.string(),
       noBtnText: v.string(),
       noBtnOptions: v.optional(v.array(v.string())),
       postYesHeadline: v.string(),
-      postYesSubtext: v.string(),
+      postYesSubtext: v.optional(v.string()),
       handwrittenMessage: v.optional(v.string()),
     }),
     visualPersonality: v.union(
@@ -34,6 +34,8 @@ export default defineSchema({
       v.literal("chaos")
     ),
     isCustom: v.boolean(),
+    enableDatePicker: v.optional(v.boolean()),
+    isRtl: v.optional(v.boolean()),
     views: v.optional(v.number()),
     yesCount: v.optional(v.number()),
   })
