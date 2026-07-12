@@ -127,8 +127,7 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-base sm:text-xl text-zinc-600 max-w-2xl mx-auto font-normal leading-relaxed mb-10"
         >
-          Create over-the-top, 240fps GPU-accelerated invitations where the &ldquo;No&rdquo; button literally escapes their cursor until they say Yes. Real-time stats drawer, date picker, and 100% free forever.
-        </motion.p>
+          "Because some questions deserve more than just a text message. </motion.p>
 
         {/* CTA buttons */}
         <motion.div
@@ -141,8 +140,7 @@ export default function LandingPage() {
             href="/studio"
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-base shadow-xl shadow-pink-500/25 hover:opacity-95 hover:scale-[1.02] transition-all flex items-center justify-center gap-2.5"
           >
-            <span>Launch Studio (Free)</span>
-            <Sparkles className="w-4 h-4 text-white fill-white" />
+            <span>Launch Studio</span>
           </Link>
           <Link
             href="/date-night"
@@ -169,11 +167,11 @@ export default function LandingPage() {
             <div className="flex-1 max-w-md mx-4">
               <div className="w-full flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white border border-black/[0.06] text-xs font-mono text-zinc-600 shadow-sm truncate">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping shrink-0" />
-                <span>wouldu.app/ask/valentine-for-3862</span>
+                <span>wouldu.vercel.app/ask/valentine-for-3862</span>
               </div>
             </div>
             <div className="text-xs font-bold text-zinc-500 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> 240fps GPU Native
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> GPU Native
             </div>
           </div>
 
@@ -403,7 +401,6 @@ export default function LandingPage() {
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-base shadow-xl shadow-pink-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2"
             >
               <span>Launch Studio Now</span>
-              <Sparkles className="w-4 h-4 text-white fill-white" />
             </Link>
             <Link
               href="/valentine"
@@ -420,7 +417,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 font-bold text-zinc-600">
             <Heart className="w-3.5 h-3.5 text-pink-600 fill-pink-600" />
-            <span>wouldu.app · Open Source Interactive Studio</span>
+            <span>wouldu · Open Source Interactive Studio</span>
           </div>
           <div className="flex items-center gap-6 font-medium text-zinc-600">
             <Link href="/studio" className="hover:text-zinc-950 transition-colors">Studio</Link>

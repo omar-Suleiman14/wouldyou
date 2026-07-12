@@ -27,41 +27,42 @@ const COLOR_PRESETS = [
   { name: "Tokyo Red", colors: { primary: "#E61919", secondary: "#FF7700", accent: "#00E5FF", background: "#FCF4F4", cardBg: "#FFFFFF", text: "#210B0B" } },
 ];
 
-type StepId = "template" | "names" | "copy" | "colors" | "slug" | "done";
+type StepId = "template" | "names" | "copy" | "celebration" | "colors" | "slug" | "done";
 
 const STEPS: { id: StepId; label: string; icon: React.ReactNode }[] = [
   { id: "template", label: "Template", icon: <Sparkles className="w-3.5 h-3.5" /> },
   { id: "names", label: "Names", icon: <User className="w-3.5 h-3.5" /> },
-  { id: "copy", label: "Copy", icon: <Type className="w-3.5 h-3.5" /> },
+  { id: "copy", label: "Question", icon: <Type className="w-3.5 h-3.5" /> },
+  { id: "celebration", label: "Post-Yes", icon: <Heart className="w-3.5 h-3.5" /> },
   { id: "colors", label: "Colors", icon: <Palette className="w-3.5 h-3.5" /> },
   { id: "slug", label: "Link", icon: <LinkIcon className="w-3.5 h-3.5" /> },
 ];
 
 function StepProgress({ current, steps }: { current: number; steps: typeof STEPS }) {
   return (
-    <div className="flex items-center gap-1 sm:gap-2 mb-8 overflow-x-auto pb-2">
+    <div className="flex items-center gap-2 sm:gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar w-full">
       {steps.map((s, i) => {
         const done = i < current;
         const active = i === current;
         return (
           <React.Fragment key={s.id}>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold transition-all duration-300 ${done
+                className={`w-8 h-8 min-w-[32px] min-h-[32px] aspect-square rounded-full flex items-center justify-center text-xs font-black leading-none select-none shrink-0 transition-all duration-300 ${done
                   ? "bg-emerald-500 text-white shadow-sm"
                   : active
-                    ? "bg-zinc-950 text-white shadow-sm scale-110"
+                    ? "bg-zinc-950 text-white shadow-md scale-105"
                     : "bg-zinc-100 text-zinc-400"
                   }`}
               >
-                {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
+                {done ? <Check className="w-4 h-4 shrink-0" /> : <span className="translate-y-[0.5px]">{i + 1}</span>}
               </div>
-              <span className={`text-xs font-bold ${active ? "text-zinc-900 font-black" : done ? "text-emerald-600" : "text-zinc-400 hidden sm:block"}`}>
+              <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-zinc-900 font-black" : done ? "text-emerald-600" : "text-zinc-400 hidden sm:block"}`}>
                 {s.label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`h-0.5 w-4 sm:w-8 rounded-full transition-colors duration-300 shrink-0 ${done ? "bg-emerald-400" : "bg-zinc-200"}`} />
+              <div className={`h-0.5 w-3 sm:w-6 rounded-full transition-colors duration-300 shrink-0 ${done ? "bg-emerald-400" : "bg-zinc-200"}`} />
             )}
           </React.Fragment>
         );
@@ -236,7 +237,12 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
               </button>
             </div>
             <div className="flex-1 overflow-y-auto relative">
-              <ExperienceView template={previewTemplate} isPreview={true} onExitPreview={() => setShowFullPreview(false)} />
+              <ExperienceView
+                template={previewTemplate}
+                isPreview={true}
+                onExitPreview={() => setShowFullPreview(false)}
+                previewStep={currentStepId === "celebration" ? "celebration" : "question"}
+              />
             </div>
           </motion.div>
         )}
@@ -443,28 +449,42 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                             })}
                           </div>
                         </div>
-                        <div>
-                          <FieldLabel>Post-Yes Headline</FieldLabel>
-                          <TextInput value={content.postYesHeadline} onChange={(v) => setContent({ ...content, postYesHeadline: v })} />
-                        </div>
-                        <div>
-                          <FieldLabel>Post-Yes Subtext</FieldLabel>
-                          <Textarea value={content.postYesSubtext} onChange={(v) => setContent({ ...content, postYesSubtext: v })} rows={2} />
-                        </div>
-                        <div>
-                          <FieldLabel>Post-Yes Handwritten Note ✍️</FieldLabel>
-                          <TextInput
-                            placeholder="It's a date! Can't wait to see you then 💕"
-                            value={content.handwrittenMessage || ""}
-                            onChange={(v) => setContent({ ...content, handwrittenMessage: v })}
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* ── STEP 4: Colors & Effects ── */}
+                {/* ── STEP 4: Post-Yes Celebration ── */}
+                {currentStepId === "celebration" && (
+                  <div className="space-y-6">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-black text-zinc-900">Post-Yes Celebration Screen</h3>
+                      <p className="text-xs text-zinc-500 font-medium">Configure the celebration screen displayed immediately when they click Yes! 🎉</p>
+                    </div>
+
+                    <div className="space-y-5 rounded-3xl bg-zinc-50 border border-zinc-200/80 p-6 max-w-xl">
+                      <div className="font-extrabold text-xs text-pink-600 uppercase tracking-wider">Celebration Details</div>
+                      <div>
+                        <FieldLabel>Post-Yes Headline</FieldLabel>
+                        <TextInput value={content.postYesHeadline} onChange={(v) => setContent({ ...content, postYesHeadline: v })} />
+                      </div>
+                      <div>
+                        <FieldLabel>Post-Yes Subtext</FieldLabel>
+                        <Textarea value={content.postYesSubtext} onChange={(v) => setContent({ ...content, postYesSubtext: v })} rows={3} />
+                      </div>
+                      <div>
+                        <FieldLabel>Post-Yes Handwritten Note ✍️</FieldLabel>
+                        <TextInput
+                          placeholder="It's a date! Can't wait to see you then 💕"
+                          value={content.handwrittenMessage || ""}
+                          onChange={(v) => setContent({ ...content, handwrittenMessage: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 5: Colors & Effects ── */}
                 {currentStepId === "colors" && (
                   <div className="space-y-6">
                     <div>
@@ -527,7 +547,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                   </div>
                 )}
 
-                {/* ── STEP 5: Link ── */}
+                {/* ── STEP 6: Link ── */}
                 {currentStepId === "slug" && (
                   <div className="max-w-xl mx-auto space-y-6">
                     <div className="text-center mb-6">
@@ -539,7 +559,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                       <div>
                         <FieldLabel hint="Optional custom URL">Custom Link Path</FieldLabel>
                         <div className="flex items-center rounded-2xl border border-black/[0.08] bg-white focus-within:ring-2 focus-within:ring-pink-500/30 overflow-hidden shadow-inner">
-                          <span className="pl-4 pr-1 text-xs text-zinc-400 font-mono whitespace-nowrap">wouldu.app/ask/</span>
+                          <span className="pl-4 pr-1 text-xs text-zinc-400 font-mono whitespace-nowrap">wouldu.vercel.app/ask/</span>
                           <input
                             suppressHydrationWarning
                             type="text"

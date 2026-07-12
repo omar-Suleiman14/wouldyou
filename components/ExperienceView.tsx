@@ -16,13 +16,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+type Step = "question" | "calendar" | "celebration";
+
 interface ExperienceViewProps {
   template: ExperienceTemplate;
   isPreview?: boolean;
   onExitPreview?: () => void;
+  previewStep?: Step;
 }
-
-type Step = "question" | "calendar" | "celebration";
 
 const NO_TAUNTS = [
   "Nice try! 🏃‍♂️",
@@ -210,7 +211,7 @@ function StatsDrawer({ slug }: { slug: string }) {
   );
 }
 
-export function ExperienceView({ template, isPreview = false, onExitPreview }: ExperienceViewProps) {
+export function ExperienceView({ template, isPreview = false, onExitPreview, previewStep }: ExperienceViewProps) {
   const safeTemplate = template || PREBUILT_TEMPLATES[0] || {};
   const slug = safeTemplate.slug || "";
   const title = safeTemplate.title || "Will you go out with me? 🌹";
@@ -226,7 +227,12 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
     ? content.noBtnOptions.filter(Boolean)
     : NO_TAUNTS;
 
-  const [step, setStep] = useState<Step>("question");
+  const [step, setStep] = useState<Step>(previewStep || "question");
+
+  useEffect(() => {
+    if (previewStep) setStep(previewStep);
+  }, [previewStep]);
+
   const [noTauntIdx, setNoTauntIdx] = useState(0);
   const [escapeCount, setEscapeCount] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -238,6 +244,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
   const rafRef = useRef<number | null>(null);
   const isTauntingRef = useRef(false);
   const currentPosRef = useRef({ x: 0, y: 0 });
+  const lastMoveCheckRef = useRef<number>(0);
 
   const recordYesMutation = useMutation(api.experiences.recordYes);
   const recordViewMutation = useMutation(api.experiences.recordView);
@@ -254,9 +261,9 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
   }, []);
 
   /**
-   * Smooth GPU-native runaway — strictly bounded inside the card container without causing scrolling
+   * Punchy, elastic, zero-lag runaway — spring physics with 100% isolated layout flow
    */
-  const triggerRunaway = useCallback(() => {
+  const triggerRunaway = useCallback((e?: React.MouseEvent | React.TouchEvent | PointerEvent) => {
     soundEngine.unlock();
     if (!cardRef.current || !noBtnRef.current || isTauntingRef.current) return;
     isTauntingRef.current = true;
@@ -267,51 +274,88 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
     const cardRect = cardRef.current.getBoundingClientRect();
     const btnRect = noBtnRef.current.getBoundingClientRect();
 
-    // Calculate maximum safe displacement strictly inside the card interior
-    const btnW = btnRect.width || 140;
-    const btnH = btnRect.height || 54;
-    const maxX = Math.max(20, (cardRect.width / 2) - (btnW / 2) - 30);
-    const maxY = Math.max(20, (cardRect.height / 2) - (btnH / 2) - 30);
-
     const cx = currentPosRef.current.x;
     const cy = currentPosRef.current.y;
 
-    let tx = (Math.random() - 0.5) * 2 * maxX;
-    let ty = (Math.random() - 0.5) * 2 * maxY;
+    // Calculate resting screen coordinates of the No button (when tx=0, ty=0)
+    const restLeft = btnRect.left - cx;
+    const restTop = btnRect.top - cy;
+    const btnW = btnRect.width || 170;
+    const btnH = btnRect.height || 60;
 
-    // Ensure noticeable jump away from current position
-    if (Math.abs(tx - cx) < 70) tx = (tx > 0 ? -1 : 1) * maxX * 0.8;
-    if (Math.abs(ty - cy) < 45) ty = (ty > 0 ? -1 : 1) * maxY * 0.8;
+    // Exact local translation bounds so the button stays >=28px inside all 4 edges of cardRect
+    const pad = 28;
+    const minTx = cardRect.left + pad - restLeft;
+    const maxTx = cardRect.right - pad - (restLeft + btnW);
+    const minTy = cardRect.top + pad - restTop;
+    const maxTy = cardRect.bottom - pad - (restTop + btnH);
 
-    tx = Math.max(-maxX, Math.min(maxX, tx));
-    ty = Math.max(-maxY, Math.min(maxY, ty));
+    let tx = 0;
+    let ty = 0;
+
+    // Evasion vector away from cursor if available, otherwise jump cleanly
+    if (e && "clientX" in e && e.clientX) {
+      const btnCenterX = btnRect.left + btnRect.width / 2;
+      const btnCenterY = btnRect.top + btnRect.height / 2;
+      const dx = btnCenterX - e.clientX;
+      const dy = btnCenterY - e.clientY;
+      const dist = Math.hypot(dx, dy) || 1;
+      tx = cx + (dx / dist) * 220;
+      ty = cy + (dy / dist) * 220;
+    } else {
+      tx = cx + (Math.random() > 0.5 ? 180 : -180);
+      ty = cy + (Math.random() > 0.5 ? 120 : -120);
+    }
+
+    // Ensure bold jump; if blocked by border, flip direction towards the center/opposite side
+    if (Math.hypot(tx - cx, ty - cy) < 130 || tx > maxTx - 10 || tx < minTx + 10) {
+      if (cx > (minTx + maxTx) / 2) {
+        tx = minTx + Math.random() * Math.max(20, (maxTx - minTx) * 0.45);
+      } else {
+        tx = maxTx - Math.random() * Math.max(20, (maxTx - minTx) * 0.45);
+      }
+    }
+    if (ty > maxTy - 10 || ty < minTy + 10) {
+      if (cy > (minTy + maxTy) / 2) {
+        ty = minTy + Math.random() * Math.max(20, (maxTy - minTy) * 0.45);
+      } else {
+        ty = maxTy - Math.random() * Math.max(20, (maxTy - minTy) * 0.45);
+      }
+    }
+
+    // Strictly clamp inside exact local bounds
+    tx = Math.max(minTx, Math.min(maxTx, tx));
+    ty = Math.max(minTy, Math.min(maxTy, ty));
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
+    // Punchy elastic spring transition (`cubic-bezier(0.18, 0.89, 0.32, 1.28)` gives ~28% cartoon bounce/overshoot!)
     if (noBtnRef.current) {
-      noBtnRef.current.style.transition = "transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.15)";
+      noBtnRef.current.style.transition = "transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
       noBtnRef.current.style.transform = `translate3d(${tx}px,${ty}px,0)`;
     }
     currentPosRef.current = { x: tx, y: ty };
 
-    setTimeout(() => {
-      isTauntingRef.current = false;
-    }, 280);
-
+    // Update React state ONLY after the 350ms spring settles for 100% zero lag mid-transition
     setTimeout(() => {
       setNoTauntIdx((p) => p + 1);
       setEscapeCount((p) => p + 1);
-    }, 40);
+      isTauntingRef.current = false;
+    }, 350);
   }, []);
 
-  // Proximity detection on card mousemove
+  // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors
   const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (step !== "question" || isTauntingRef.current || !noBtnRef.current || !cardRef.current) return;
+    const now = performance.now();
+    if (now - lastMoveCheckRef.current < 28) return; // Throttled to ~35fps layout check (`0.001ms` return on high refresh rate monitors)
+    lastMoveCheckRef.current = now;
+
     soundEngine.unlock();
-    if (step !== "question" || !noBtnRef.current || !cardRef.current || isTauntingRef.current) return;
     const btnRect = noBtnRef.current.getBoundingClientRect();
     const cx = btnRect.left + btnRect.width / 2;
     const cy = btnRect.top + btnRect.height / 2;
-    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 78) triggerRunaway();
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 84) triggerRunaway(e);
   }, [step, triggerRunaway]);
 
   const handleYesClick = () => {
@@ -399,6 +443,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
       {/* ── STEP CONTENT (85% Screen Height & Width Master Container) ── */}
       <div className="w-full min-h-screen flex items-center justify-center p-4 sm:p-8">
         <motion.div
+          suppressHydrationWarning
           ref={cardRef}
           onMouseMove={handleCardMouseMove}
           onPointerDown={() => soundEngine.unlock()}
@@ -435,23 +480,23 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
                   {displaySubtext}
                 </p>
 
-                {/* Buttons — Yes button stays 100% fixed size, No button flies across screen */}
-                <div suppressHydrationWarning className="relative flex flex-col sm:flex-row items-center justify-center gap-6 mt-4 w-full" style={{ minHeight: 68 }}>
-                  {/* YES — Fixed min-width and scale so it never changes size */}
+                {/* Buttons — Yes button stays 100% fixed dimensions, No button floats isolated in absolute box */}
+                <div suppressHydrationWarning className="relative flex flex-col sm:flex-row items-center justify-center gap-6 mt-4 w-full" style={{ minHeight: 64 }}>
+                  {/* YES — Fixed exact width & height (`w-[260px] sm:w-[280px] h-[60px] sm:h-[64px]`) so it never resizes or shifts */}
                   <motion.button
+                    suppressHydrationWarning
                     type="button"
-                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleYesClick}
                     style={{ backgroundColor: colors.primary }}
-                    className="shrink-0 min-w-[240px] sm:min-w-[280px] px-8 py-4 sm:py-5 rounded-2xl font-black text-lg sm:text-xl text-white shadow-xl flex items-center justify-center gap-3 cursor-pointer z-30 relative select-none"
+                    className="shrink-0 w-[260px] sm:w-[280px] h-[60px] sm:h-[64px] px-6 rounded-2xl font-black text-lg sm:text-xl text-white shadow-xl flex items-center justify-center gap-3 cursor-pointer z-30 relative select-none"
                   >
-                    <span>{content.yesBtnText}</span>
-                    <Heart className="w-5 h-5 fill-white animate-bounce" />
+                    <span suppressHydrationWarning className="truncate">{content.yesBtnText}</span>
+                    <Heart className="w-5 h-5 fill-white shrink-0 animate-bounce" />
                   </motion.button>
 
-                  {/* NO — placeholder slot prevents any flex resizing of Yes when No escapes */}
-                  <div className="shrink-0 min-w-[160px] h-[56px] flex items-center justify-center relative">
+                  {/* NO — placeholder slot with exact fixed dimensions (`w-[160px] sm:w-[170px] h-[60px] sm:h-[64px]`) and absolute child */}
+                  <div suppressHydrationWarning className="shrink-0 w-[160px] sm:w-[170px] h-[60px] sm:h-[64px] relative">
                     <button
                       suppressHydrationWarning
                       type="button"
@@ -459,10 +504,10 @@ export function ExperienceView({ template, isPreview = false, onExitPreview }: E
                       onPointerEnter={() => soundEngine.unlock()}
                       onPointerDown={triggerRunaway}
                       onTouchStart={(e) => { e.preventDefault(); triggerRunaway(); }}
-                      className="px-8 py-4 rounded-2xl font-bold text-sm sm:text-base text-zinc-600 bg-black/[0.05] hover:bg-black/[0.08] border border-black/[0.08] flex items-center justify-center gap-2 cursor-pointer z-40 relative whitespace-nowrap shadow-sm"
+                      className="absolute left-0 top-0 w-[160px] sm:w-[170px] h-[60px] sm:h-[64px] px-3 rounded-2xl font-bold text-sm sm:text-base text-zinc-600 bg-black/[0.05] hover:bg-black/[0.08] border border-black/[0.08] flex items-center justify-center gap-1.5 cursor-pointer z-40 select-none shadow-sm truncate"
                       style={{ willChange: "transform", backfaceVisibility: "hidden" }}
                     >
-                      {escapeCount > 0 ? activeNoTaunts[noTauntIdx % activeNoTaunts.length] : content.noBtnText}
+                      <span suppressHydrationWarning className="truncate">{escapeCount > 0 ? activeNoTaunts[noTauntIdx % activeNoTaunts.length] : content.noBtnText}</span>
                     </button>
                   </div>
                 </div>

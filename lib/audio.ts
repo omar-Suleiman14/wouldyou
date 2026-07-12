@@ -3,6 +3,7 @@
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
+  private isUnlocked: boolean = false;
   private isAmbientPlaying: boolean = false;
   private ambientOscillators: OscillatorNode[] = [];
   private ambientGain: GainNode | null = null;
@@ -34,10 +35,14 @@ class SoundEngine {
   }
 
   public unlock(): void {
-    if (typeof window === "undefined" || this.isMuted) return;
+    if (this.isUnlocked || typeof window === "undefined" || this.isMuted) return;
     const ctx = this.getContext();
-    if (ctx && ctx.state === "suspended") {
-      ctx.resume().catch(() => { });
+    if (ctx) {
+      if (ctx.state === "suspended") {
+        ctx.resume().then(() => { this.isUnlocked = true; }).catch(() => { });
+      } else if (ctx.state === "running") {
+        this.isUnlocked = true;
+      }
     }
   }
 

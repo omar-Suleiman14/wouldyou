@@ -27,9 +27,10 @@ export function Navbar({ onNavigateSection }: NavbarProps) {
   return (
     <header
       suppressHydrationWarning
+      style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${scrolled
-          ? "bg-white/90 backdrop-blur-xl border-b border-black/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
-          : "bg-white/80 backdrop-blur-lg border-b border-black/[0.05]"
+        ? "bg-white/60 backdrop-blur-2xl border-b border-black/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.08)]"
+        : "bg-white/40 backdrop-blur-2xl border-b border-black/[0.05] shadow-[0_2px_16px_rgba(0,0,0,0.03)]"
         }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
@@ -43,7 +44,7 @@ export function Navbar({ onNavigateSection }: NavbarProps) {
             <Heart className="w-4 h-4 text-white fill-white animate-pulse" />
           </div>
           <span className="text-base sm:text-lg font-black tracking-tight text-zinc-950">
-            wouldu<span className="text-pink-600">.app</span>
+            wouldu
           </span>
         </Link>
 
@@ -66,7 +67,6 @@ export function Navbar({ onNavigateSection }: NavbarProps) {
               className="px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-extrabold text-xs shadow-md shadow-pink-500/20 hover:opacity-95 transition-all flex items-center gap-1.5"
             >
               <span>Launch Studio</span>
-              <Sparkles className="w-3.5 h-3.5 text-white fill-white" />
             </Link>
           )}
         </div>
