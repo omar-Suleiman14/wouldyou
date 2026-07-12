@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
@@ -11,12 +11,28 @@ import { ExperienceView } from "./ExperienceView";
 import {
   Sparkles, Heart, Copy, Check, ArrowRight, ArrowLeft,
   ExternalLink, User, Type, Palette, Link as LinkIcon,
-  Eye, X,
+  Eye, X, History as HistoryIcon, Trash2, RotateCcw, Plus,
 } from "lucide-react";
 
 interface CustomizerStudioProps {
   initialTemplate?: ExperienceTemplate;
   onExperienceCreated?: (slug: string) => void;
+}
+
+export interface StudioHistoryItem {
+  id: string;
+  timestamp: number;
+  title: string;
+  slug?: string;
+  templateId: string;
+  recipientName: string;
+  senderName: string;
+  colors: ExperienceTemplate["colors"];
+  content: ExperienceTemplate["content"];
+  visualPersonality: VisualPersonality;
+  enableDatePicker: boolean;
+  isRtl: boolean;
+  customSlugInput: string;
 }
 
 const COLOR_PRESETS = [
@@ -131,6 +147,104 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
   const [generatedSlug, setGeneratedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyList, setHistoryList] = useState<StudioHistoryItem[]>([]);
+
+  // Load auto-saved draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem("wouldyou_studio_draft");
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        const tmpl = PREBUILT_TEMPLATES.find((t) => t.templateId === parsed.templateId) || initialTemplate || PREBUILT_TEMPLATES[0];
+        setBase(tmpl);
+        if (parsed.recipientName !== undefined) setRecipientName(parsed.recipientName);
+        if (parsed.senderName !== undefined) setSenderName(parsed.senderName);
+        if (parsed.colors) setColors(parsed.colors);
+        if (parsed.content) setContent(parsed.content);
+        if (parsed.visualPersonality) setVisualPersonality(parsed.visualPersonality);
+        if (parsed.enableDatePicker !== undefined) setEnableDatePicker(parsed.enableDatePicker);
+        if (parsed.isRtl !== undefined) setIsRtl(parsed.isRtl);
+        if (parsed.customSlugInput !== undefined) setCustomSlugInput(parsed.customSlugInput);
+        if (typeof parsed.stepIdx === "number" && parsed.stepIdx < STEPS.length) setStepIdx(parsed.stepIdx);
+      }
+      const savedHistory = localStorage.getItem("wouldyou_studio_history");
+      if (savedHistory) setHistoryList(JSON.parse(savedHistory));
+    } catch (e) {}
+  }, [initialTemplate]);
+
+  // Auto-save current progress (`wouldyou_studio_draft`) whenever step or fields change
+  useEffect(() => {
+    try {
+      const draft = {
+        templateId: base.templateId,
+        recipientName,
+        senderName,
+        colors,
+        content,
+        visualPersonality,
+        enableDatePicker,
+        isRtl,
+        customSlugInput,
+        stepIdx,
+      };
+      localStorage.setItem("wouldyou_studio_draft", JSON.stringify(draft));
+    } catch (e) {}
+  }, [base.templateId, recipientName, senderName, colors, content, visualPersonality, enableDatePicker, isRtl, customSlugInput, stepIdx]);
+
+  const saveCurrentToHistory = () => {
+    triggerHaptic("notificationSuccess");
+    soundEngine.playClickSound(1200);
+    try {
+      const historyItem: StudioHistoryItem = {
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        title: content.headline || base.title,
+        slug: generatedSlug || (customSlugInput ? `/ask/${customSlugInput}` : undefined),
+        templateId: base.templateId,
+        recipientName: recipientName.trim(),
+        senderName: senderName.trim(),
+        colors,
+        content,
+        visualPersonality,
+        enableDatePicker,
+        isRtl,
+        customSlugInput,
+      };
+      const existing = JSON.parse(localStorage.getItem("wouldyou_studio_history") || "[]");
+      const updated = [historyItem, ...existing].slice(0, 30);
+      localStorage.setItem("wouldyou_studio_history", JSON.stringify(updated));
+      setHistoryList(updated);
+    } catch (e) {}
+  };
+
+  const restoreFromHistory = (item: StudioHistoryItem) => {
+    triggerHaptic("celebrationBoom");
+    soundEngine.playYesFanfare();
+    const tmpl = PREBUILT_TEMPLATES.find((t) => t.templateId === item.templateId) || PREBUILT_TEMPLATES[0];
+    setBase(tmpl);
+    setRecipientName(item.recipientName || "");
+    setSenderName(item.senderName || "");
+    setColors(item.colors || tmpl.colors);
+    setContent(item.content || tmpl.content);
+    setVisualPersonality(item.visualPersonality || tmpl.visualPersonality);
+    setEnableDatePicker(item.enableDatePicker ?? true);
+    setIsRtl(item.isRtl ?? false);
+    setCustomSlugInput(item.customSlugInput || "");
+    setStepIdx(0);
+    setShowHistoryModal(false);
+  };
+
+  const deleteHistoryItem = (id: string) => {
+    triggerHaptic("impactMedium");
+    soundEngine.playClickSound(900);
+    try {
+      const existing = JSON.parse(localStorage.getItem("wouldyou_studio_history") || "[]");
+      const updated = existing.filter((item: any) => item.id !== id);
+      localStorage.setItem("wouldyou_studio_history", JSON.stringify(updated));
+      setHistoryList(updated);
+    } catch (e) {}
+  };
 
   const createMutation = useMutation(api.experiences.createExperience);
 
@@ -182,6 +296,27 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
       triggerHaptic("celebrationBoom");
       setGeneratedSlug(result.slug);
       onExperienceCreated?.(result.slug);
+      try {
+        const historyItem: StudioHistoryItem = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          title: content.headline || base.title,
+          slug: result.slug,
+          templateId: base.templateId,
+          recipientName: recipientName.trim(),
+          senderName: senderName.trim(),
+          colors,
+          content,
+          visualPersonality,
+          enableDatePicker,
+          isRtl,
+          customSlugInput: slug || "",
+        };
+        const existing = JSON.parse(localStorage.getItem("wouldyou_studio_history") || "[]");
+        const updated = [historyItem, ...existing.filter((item: any) => item.slug !== result.slug)].slice(0, 30);
+        localStorage.setItem("wouldyou_studio_history", JSON.stringify(updated));
+        setHistoryList(updated);
+      } catch (e) {}
       setStepIdx(STEPS.length); // past the last step = "done" state
     } catch (err) {
       console.error(err);
@@ -257,22 +392,169 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
       </AnimatePresence>
 
       {/* ── MAIN STUDIO WIZARD CARD (FULL WIDTH) ── */}
-      <div className="rounded-[2.5rem] sm:rounded-[3rem] bg-white/95 border border-black/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.08)] p-6 sm:p-10 flex flex-col h-full min-h-[580px] lg:min-h-0 overflow-hidden">
+      <div className="rounded-[2rem] sm:rounded-[3rem] bg-white/95 border border-black/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.08)] p-4 sm:p-8 lg:p-10 flex flex-col h-full min-h-[580px] lg:min-h-0 w-full min-w-0">
         {/* Top Header & Preview Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-zinc-100">
           <div>
             <h2 className="text-2xl font-black text-zinc-950 tracking-tight">Experience Studio ✨</h2>
             <p className="text-xs text-zinc-500 font-medium">Create your interactive invitation step by step.</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowFullPreview(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/15 border border-pink-500/20 text-pink-600 font-extrabold text-xs transition-all cursor-pointer shadow-sm"
-          >
-            <Eye className="w-4 h-4" />
-            <span>Test Live Preview</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("tick");
+                soundEngine.playClickSound();
+                try {
+                  const saved = localStorage.getItem("wouldyou_studio_history");
+                  if (saved) setHistoryList(JSON.parse(saved));
+                } catch (e) {}
+                setShowHistoryModal(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-900/5 hover:bg-zinc-900/10 border border-black/10 text-zinc-800 font-extrabold text-xs transition-all cursor-pointer shadow-sm"
+            >
+              <HistoryIcon className="w-4 h-4 text-pink-600" />
+              <span>History</span>
+              {historyList.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-pink-500 text-white text-[10px] font-black">{historyList.length}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFullPreview(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 hover:bg-pink-500/15 border border-pink-500/20 text-pink-600 font-extrabold text-xs transition-all cursor-pointer shadow-sm"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Test Live Preview</span>
+            </button>
+          </div>
         </div>
+
+        {/* ── HISTORY MODAL ── */}
+        <AnimatePresence>
+          {showHistoryModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                className="w-full max-w-xl rounded-3xl bg-white border border-black/10 shadow-2xl p-6 sm:p-8 max-h-[85vh] flex flex-col overflow-hidden"
+              >
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-600">
+                      <HistoryIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-zinc-900 leading-none">Saved History & Drafts</h3>
+                      <p className="text-xs text-zinc-500 font-medium mt-1">Easily restore past customizations or links.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHistoryModal(false)}
+                    className="p-2 rounded-full hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={saveCurrentToHistory}
+                    className="w-full py-3 px-4 rounded-2xl bg-zinc-900 text-white font-extrabold text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all shadow-md cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-pink-400" />
+                    <span>+ Save Current Work to History</span>
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                  {historyList.length === 0 ? (
+                    <div className="text-center py-10 text-zinc-400">
+                      <HistoryIcon className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm font-bold text-zinc-600">No saved history yet</p>
+                      <p className="text-xs text-zinc-400 mt-0.5">Your generated links and manual saves will appear right here.</p>
+                    </div>
+                  ) : (
+                    historyList.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-2xl bg-zinc-50 border border-black/5 hover:border-pink-500/30 hover:bg-white transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-black text-zinc-900 truncate">
+                              {item.recipientName ? `For ${item.recipientName}` : item.title || "Custom Invitation"}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-700 text-[10px] font-extrabold uppercase tracking-wide">
+                              {item.templateId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1.5 text-xs text-zinc-500">
+                            <span>{new Date(item.timestamp).toLocaleDateString()}</span>
+                            {item.slug && (
+                              <a
+                                href={item.slug}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-pink-600 font-bold hover:underline flex items-center gap-1 truncate"
+                              >
+                                <span>{item.slug}</span>
+                                <ExternalLink className="w-3 h-3 shrink-0" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => restoreFromHistory(item)}
+                            className="px-3.5 py-2 rounded-xl bg-pink-500 text-white font-extrabold text-xs flex items-center gap-1.5 hover:bg-pink-600 transition-colors shadow-sm cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Restore</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteHistoryItem(item.id)}
+                            className="p-2 rounded-xl hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {historyList.length > 0 && (
+                  <div className="pt-4 mt-4 border-t border-zinc-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic("impactMedium");
+                        localStorage.removeItem("wouldyou_studio_history");
+                        setHistoryList([]);
+                      }}
+                      className="text-xs font-bold text-red-500 hover:underline cursor-pointer"
+                    >
+                      Clear All History
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Step Progress Bar */}
         {stepIdx < STEPS.length && <StepProgress current={stepIdx} steps={STEPS} />}
@@ -282,47 +564,47 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="my-auto rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto"
+            className="my-auto rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 p-5 sm:p-8 md:p-12 text-center space-y-6 max-w-xl mx-auto w-full min-w-0 overflow-hidden shadow-sm"
           >
-            <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/30">
+            <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/30 shrink-0">
               <Check className="w-10 h-10 text-white" />
             </div>
-            <div>
-              <h3 className="text-3xl font-black text-zinc-950 mb-2">Experience Created! 🎉</h3>
-              <p className="text-sm text-zinc-600 font-medium">Your interactive invitation is live. Share the link below with your partner and watch responses arrive!</p>
+            <div className="w-full min-w-0">
+              <h3 className="text-2xl sm:text-3xl font-black text-zinc-950 mb-2 truncate">Experience Created! 🎉</h3>
+              <p className="text-xs sm:text-sm text-zinc-600 font-medium">Your interactive invitation is live. Share the link below with your partner and watch responses arrive!</p>
             </div>
 
-            <div className="rounded-2xl bg-white border border-black/10 p-4 flex items-center justify-between gap-3 text-left shadow-md">
-              <span className="text-xs sm:text-sm font-mono font-bold text-zinc-900 truncate">
+            <div className="rounded-2xl bg-white border border-black/10 p-3 sm:p-4 flex items-center justify-between gap-2 sm:gap-3 text-left shadow-md w-full min-w-0">
+              <span className="text-xs sm:text-sm font-mono font-bold text-zinc-900 truncate flex-1 min-w-0">
                 {typeof window !== "undefined" ? `${window.location.origin}${generatedSlug}` : generatedSlug}
               </span>
               <button
                 suppressHydrationWarning
                 type="button"
                 onClick={copyLink}
-                className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                className="shrink-0 px-3 sm:px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                 style={{ backgroundColor: copied ? "#22c55e" : "#111318", color: "white" }}
               >
-                {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Copy className="w-4 h-4" /> Copy Link</>}
+                {copied ? <><Check className="w-4 h-4 shrink-0" /> Copied</> : <><Copy className="w-4 h-4 shrink-0" /> Copy Link</>}
               </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-4 w-full min-w-0">
               <a
                 href={generatedSlug}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-zinc-950 text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-zinc-800 transition-colors shadow-lg"
+                className="flex-1 py-3.5 px-4 sm:px-6 rounded-2xl bg-zinc-950 text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-zinc-800 transition-colors shadow-lg min-w-0 truncate"
               >
-                Open Invitation <ExternalLink className="w-4 h-4" />
+                <span className="truncate">Open Invitation</span> <ExternalLink className="w-4 h-4 shrink-0" />
               </a>
               <a
                 href={`/admin${generatedSlug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-white text-zinc-800 font-extrabold text-sm border border-black/10 flex items-center justify-center gap-2 hover:bg-zinc-50 transition-colors shadow-sm"
+                className="flex-1 py-3.5 px-4 sm:px-6 rounded-2xl bg-white text-zinc-800 font-extrabold text-sm border border-black/10 flex items-center justify-center gap-2 hover:bg-zinc-50 transition-colors shadow-sm min-w-0 truncate"
               >
-                Analytics Dashboard 📊
+                <span className="truncate">Analytics Dashboard</span> 📊
               </a>
             </div>
           </motion.div>
@@ -675,15 +957,15 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 mt-6 border-t border-zinc-100 shrink-0">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-6 mt-6 border-t border-zinc-100 shrink-0 w-full min-w-0 overflow-visible">
               <button
                 suppressHydrationWarning
                 type="button"
                 onClick={goBack}
                 disabled={stepIdx === 0}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer disabled:opacity-0"
+                className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer shrink-0 ${stepIdx === 0 ? "hidden sm:flex opacity-0 pointer-events-none" : "w-full sm:w-auto"}`}
               >
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4 shrink-0" /> Back
               </button>
 
               {stepIdx < STEPS.length - 1 ? (
@@ -691,9 +973,9 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                   suppressHydrationWarning
                   type="button"
                   onClick={goNext}
-                  className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-zinc-950 text-white font-black text-sm hover:bg-zinc-800 transition-all shadow-lg cursor-pointer"
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-zinc-950 text-white font-black text-sm hover:bg-zinc-800 hover:-translate-y-0.5 hover:shadow-xl transition-all shadow-lg cursor-pointer w-full sm:w-auto shrink-0 ml-auto whitespace-nowrap"
                 >
-                  Next <ArrowRight className="w-4 h-4" />
+                  Next <ArrowRight className="w-4 h-4 shrink-0" />
                 </button>
               ) : (
                 <button
@@ -701,13 +983,13 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                   type="button"
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="flex items-center gap-2.5 px-8 py-3.5 rounded-2xl font-black text-sm text-white shadow-xl transition-all cursor-pointer disabled:opacity-60 hover:scale-105"
+                  className="flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 rounded-2xl font-black text-sm text-white shadow-xl transition-all cursor-pointer disabled:opacity-60 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 w-full sm:w-auto ml-auto shrink-0 whitespace-nowrap"
                   style={{ backgroundColor: colors.primary }}
                 >
                   {isGenerating ? (
-                    <><Sparkles className="w-4 h-4 animate-spin" /> Generating Link…</>
+                    <><Sparkles className="w-4 h-4 animate-spin shrink-0" /> <span>Generating Link…</span></>
                   ) : (
-                    <><Heart className="w-4 h-4 fill-white animate-bounce" /> Generate Interactive Invitation</>
+                    <><Heart className="w-4 h-4 fill-white animate-bounce shrink-0" /> <span>Generate Interactive Invitation</span></>
                   )}
                 </button>
               )}

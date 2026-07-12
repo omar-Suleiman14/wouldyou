@@ -443,7 +443,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
       </div>
 
       {/* ── STEP CONTENT (85% Screen Height & Width Master Container) ── */}
-      <div className="w-full min-h-screen flex items-center justify-center p-4 sm:p-8">
+      <div className="w-full min-h-screen flex items-center justify-center p-4 pt-14 sm:p-8 sm:pt-8">
         <motion.div
           suppressHydrationWarning
           ref={cardRef}
@@ -451,7 +451,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
           onPointerDown={() => soundEngine.unlock()}
           dir={isRtlActive ? "rtl" : "ltr"}
           style={{ backgroundColor: colors?.cardBg || "#FFFFFF", border: "1px solid rgba(0,0,0,0.12)" }}
-          className={`relative w-[85vw] h-[85vh] max-w-[1300px] max-h-[900px] rounded-[3.5rem] shadow-[0_32px_100px_rgba(0,0,0,0.18)] p-6 sm:p-16 flex flex-col items-center justify-center ${step === "question" ? "overflow-hidden" : "overflow-y-auto"} backdrop-blur-2xl text-center`}
+          className={`relative mt-2 sm:mt-0 w-[85vw] h-[85vh] max-w-[1300px] max-h-[900px] rounded-[3.5rem] shadow-[0_32px_100px_rgba(0,0,0,0.18)] p-6 sm:p-16 flex flex-col items-center justify-center ${step === "question" ? "overflow-hidden" : "overflow-y-auto"} backdrop-blur-2xl text-center`}
         >
           <AnimatePresence mode="wait">
 

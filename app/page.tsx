@@ -194,7 +194,7 @@ export default function LandingPage() {
               href="/date-night"
               className="w-full sm:w-auto px-8 py-4 sm:py-5 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-800 font-extrabold text-base border border-black/[0.08] shadow-md transition-all flex items-center justify-center gap-2"
             >
-              <span>See Live Demo ✨</span>
+              <span>See Live Demo</span>
             </Link>
           </div>
 
@@ -227,8 +227,8 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="text-xs font-bold text-zinc-600 flex items-center gap-2 font-mono">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" /> 
-              <span>240FPS · GPU Native</span>
+              {/* <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />  */}
+              <span>GPU Native</span>
             </div>
           </div>
 
