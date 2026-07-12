@@ -250,8 +250,8 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
     const btnW = btnRect.width || 170;
     const btnH = btnRect.height || 60;
 
-    // Exact local translation bounds so the button stays >=28px inside all 4 edges of cardRect
-    const pad = 28;
+    // Exact local translation bounds so the button stays well inside all 4 edges of cardRect (`64px` buffer on desktop, `36px` on mobile)
+    const pad = typeof window !== "undefined" && window.innerWidth < 640 ? 36 : 64;
     const minTx = cardRect.left + pad - restLeft;
     const maxTx = cardRect.right - pad - (restLeft + btnW);
     const minTy = cardRect.top + pad - restTop;
@@ -263,7 +263,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
     let tx = 0;
     let ty = 0;
 
-    // First evasion moves directly into the center with a snappy animation; subsequent escapes leap far across the card
+    // First evasion moves directly into the center with a bouncy animation; subsequent escapes leap across safe inner card space
     if (cx === 0 && cy === 0) {
       tx = centerTx;
       ty = centerTy;
@@ -277,7 +277,7 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
         const randY = minTy + Math.random() * (maxTy - minTy);
         const distFromCurrent = Math.hypot(randX - cx, randY - cy);
         const distFromMouse = Math.hypot((cardRect.left + pad + randX) - mouseX, (cardRect.top + pad + randY) - mouseY);
-        if (distFromCurrent > 170 && distFromMouse > 140) {
+        if (distFromCurrent > 160 && distFromMouse > 120) {
           tx = randX;
           ty = randY;
           found = true;
@@ -285,8 +285,8 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
         }
       }
       if (!found) {
-        tx = cx < centerTx ? Math.min(maxTx, cx + 240) : Math.max(minTx, cx - 240);
-        ty = cy < centerTy ? Math.min(maxTy, cy + 180) : Math.max(minTy, cy - 180);
+        tx = cx < centerTx ? Math.min(maxTx, cx + 220) : Math.max(minTx, cx - 220);
+        ty = cy < centerTy ? Math.min(maxTy, cy + 160) : Math.max(minTy, cy - 160);
       }
     }
 
@@ -296,36 +296,36 @@ export function ExperienceView({ template, isPreview = false, onExitPreview, pre
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    // Fast, snappy, buttery 220ms transition across the card
+    // Perfectly tuned, lively iOS spring bounce (`0.28s cubic-bezier(0.22, 1.15, 0.36, 1)`) with controlled 15% overshoot
     if (noBtnRef.current) {
-      noBtnRef.current.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1)";
+      noBtnRef.current.style.transition = "transform 0.28s cubic-bezier(0.22, 1.15, 0.36, 1)";
       noBtnRef.current.style.transform = `translate3d(${tx}px,${ty}px,0)`;
     }
     currentPosRef.current = { x: tx, y: ty };
     setEscapeCount((p) => p + 1);
 
-    // Unlock proximity check after 110ms so rapid mouse pursuit triggers immediate successive escapes
+    // Unlock proximity check after 240ms so successive bounces trigger smoothly right when it settles
     setTimeout(() => {
       isTauntingRef.current = false;
-    }, 110);
+    }, 240);
 
     setTimeout(() => {
       setNoTauntIdx((p) => p + 1);
-    }, 220);
+    }, 280);
   }, []);
 
-  // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors with generous 140px escape radius
+  // Proximity detection throttled for 120Hz/240Hz Mac ProMotion monitors with balanced 115px escape radius
   const handleCardMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (step !== "question" || isTauntingRef.current || !noBtnRef.current || !cardRef.current) return;
     const now = performance.now();
-    if (now - lastMoveCheckRef.current < 16) return; // Throttled to 60fps layout check
+    if (now - lastMoveCheckRef.current < 12) return; // Throttled layout check
     lastMoveCheckRef.current = now;
 
     soundEngine.unlock();
     const btnRect = noBtnRef.current.getBoundingClientRect();
     const cx = btnRect.left + btnRect.width / 2;
     const cy = btnRect.top + btnRect.height / 2;
-    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 140) triggerRunaway(e);
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < 115) triggerRunaway(e);
   }, [step, triggerRunaway]);
 
   const handleYesClick = async () => {
