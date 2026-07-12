@@ -243,7 +243,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
       </AnimatePresence>
 
       {/* ── MAIN STUDIO WIZARD CARD (FULL WIDTH) ── */}
-      <div className="rounded-[3rem] bg-white/95 border border-black/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.08)] p-6 sm:p-12 flex flex-col min-h-[640px]">
+      <div className="rounded-[2.5rem] sm:rounded-[3rem] bg-white/95 border border-black/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.08)] p-6 sm:p-10 flex flex-col h-full min-h-[580px] lg:min-h-0 overflow-hidden">
         {/* Top Header & Preview Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-zinc-100">
           <div>
@@ -313,7 +313,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
             </div>
           </motion.div>
         ) : (
-          <div className="flex-1 flex flex-col justify-between">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStepId}
@@ -322,7 +322,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                className="space-y-6"
+                className="space-y-6 flex-1 overflow-y-auto pr-1"
               >
                 {/* ── STEP 1: Templates ── */}
                 {currentStepId === "template" && (
@@ -559,7 +559,7 @@ export function CustomizerStudio({ initialTemplate, onExperienceCreated }: Custo
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-8 mt-8 border-t border-zinc-100">
+            <div className="flex items-center justify-between pt-6 mt-6 border-t border-zinc-100 shrink-0">
               <button
                 suppressHydrationWarning
                 type="button"
