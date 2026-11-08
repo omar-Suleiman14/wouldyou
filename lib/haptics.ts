@@ -1,51 +1,17 @@
-export type HapticType =
-  | "impactLight"
-  | "impactMedium"
-  | "impactHeavy"
-  | "notificationSuccess"
-  | "panicRun"
-  | "celebrationBoom"
-  | "tick";
+export type HapticType = "light" | "escape" | "success";
 
-/**
- * Clean haptics utility using standard Web Vibration API.
- * Safely handles unsupported browsers/iOS Safari without throwing errors.
- */
-export function triggerHaptic(type: HapticType = "impactLight"): void {
-  if (typeof window === "undefined" || !("vibrate" in navigator)) {
-    return;
-  }
+const PATTERNS: Record<HapticType, number | number[]> = {
+  light: 10,
+  escape: [12, 24, 12],
+  success: [30, 40, 60],
+};
 
+/** Vibrates on devices that support it (Android). A no-op everywhere else. */
+export function haptic(type: HapticType = "light") {
+  if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
   try {
-    switch (type) {
-      case "tick":
-        navigator.vibrate(5);
-        break;
-      case "impactLight":
-        navigator.vibrate(15);
-        break;
-      case "impactMedium":
-        navigator.vibrate(30);
-        break;
-      case "impactHeavy":
-        navigator.vibrate(50);
-        break;
-      case "panicRun":
-        // Darting/wobble pattern as button escapes
-        navigator.vibrate([20, 30, 20, 30, 40]);
-        break;
-      case "notificationSuccess":
-        navigator.vibrate([35, 50, 75]);
-        break;
-      case "celebrationBoom":
-        // Big multi-pulse fanfare
-        navigator.vibrate([60, 40, 80, 40, 120, 60, 200]);
-        break;
-      default:
-        navigator.vibrate(20);
-        break;
-    }
+    navigator.vibrate(PATTERNS[type]);
   } catch {
-    // Silently ignore vibration errors (e.g. user hasn't interacted with document yet)
+    // Some browsers refuse before the first user gesture.
   }
 }
