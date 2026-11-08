@@ -1,54 +1,37 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
-import { ConvexClientProvider } from "../components/ConvexClientProvider";
+import type { Metadata, Viewport } from "next";
+import { Caveat, IBM_Plex_Sans_Arabic, Inter } from "next/font/google";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import { SITE_URL } from "@/lib/config";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-});
-
-const outfit = Outfit({
-  variable: "--font-display",
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-});
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
+const arabic = IBM_Plex_Sans_Arabic({ variable: "--font-arabic", subsets: ["arabic"], weight: ["400", "500", "600", "700"], display: "swap" });
+const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "WouldU. | The Question They Can't Escape",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "wouldu — ask them properly", template: "%s · wouldu" },
   description:
-    "Build beautiful, interactive will-you-go-out-with-me experiences. Physics-powered 'No' button, calendar date picking, and real-time response tracking — all in one shareable link.",
-  icons: { icon: "/favicon.ico" },
+    "Make a page that asks someone out, with a No button that won't hold still. When they say yes, they pick a day and you see it. Free, no sign-up.",
   openGraph: {
-    title: "WouldU. | The Question They Can't Escape",
-    description: "An absurdly over-animated, Apple-polished way to ask someone out.",
+    title: "wouldu — ask them properly",
+    description: "A link that asks the question for you. When they say yes, they pick a day.",
     type: "website",
+    siteName: "wouldu",
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfb" },
+    { media: "(prefers-color-scheme: dark)", color: "#171716" },
+  ],
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${plusJakarta.variable} ${outfit.variable} h-full antialiased`}
-    >
-      <head>
-        {/* DNS prefetch for Convex */}
-        <link rel="dns-prefetch" href="https://bold-hamster-16.eu-west-1.convex.cloud" />
-        <link rel="preconnect" href="https://bold-hamster-16.eu-west-1.convex.cloud" crossOrigin="anonymous" />
-        {/* Prefetch key routes */}
-        <link rel="prefetch" href="/studio" as="document" />
-      </head>
-      <body
-        suppressHydrationWarning
-        className="min-h-full flex flex-col bg-[#FAFAFA] text-[#111318] font-sans selection:bg-pink-500 selection:text-white overflow-x-hidden"
-      >
+    <html lang="en" className={`${inter.variable} ${arabic.variable} ${caveat.variable}`}>
+      <body className="min-h-dvh">
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
